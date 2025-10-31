@@ -420,6 +420,24 @@
             box-shadow: 0 6px 15px rgba(0, 206, 209, 0.5);
         }
 
+        .search-ingredient-btn {
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(255, 107, 157, 0.3);
+        }
+
+        .search-ingredient-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(255, 107, 157, 0.5);
+        }
+
         .ingredient-item.copied {
             background: linear-gradient(135deg, #C8E6C9, #E8F5E9);
             border-color: #4CAF50;
@@ -836,26 +854,30 @@
                 <h2>🏪 Faire vos Courses en Ligne</h2>
                 
                 <div class="instruction-box">
-                    <strong>🔍 Mode d'emploi simple :</strong><br>
-                    1️⃣ Cliquez sur "📋 Copier" pour chaque ingrédient<br>
-                    2️⃣ L'ingrédient sera copié automatiquement<br>
-                    3️⃣ Allez sur votre supermarché (liens ci-dessous)<br>
-                    4️⃣ Collez dans la barre de recherche et ajoutez au panier !
+                    <strong>🔍 Deux méthodes selon votre supermarché :</strong><br>
+                    <strong style="color: #0D47A1;">🛒 Carrefour & Auchan :</strong> Cliquez sur "Rechercher" → résultats directs<br>
+                    <strong style="color: #0D47A1;">🛍️ Leclerc & Intermarché :</strong> Cliquez sur "Copier" → Collez sur le site
                 </div>
 
                 <div class="supermarche-grid" style="margin-bottom: 30px;">
-                    <button class="supermarche-btn carrefour" onclick="window.open('https://www.carrefour.fr', '_blank')">
+                    <button class="supermarche-btn carrefour" onclick="choisirSupermarche('Carrefour', 'https://www.carrefour.fr/s?q=', true)">
                         🛒 Carrefour
                     </button>
-                    <button class="supermarche-btn auchan" onclick="window.open('https://www.auchan.fr', '_blank')">
+                    <button class="supermarche-btn auchan" onclick="choisirSupermarche('Auchan', 'https://www.auchan.fr/recherche?text=', true)">
                         🏪 Auchan
                     </button>
-                    <button class="supermarche-btn leclerc" onclick="window.open('https://www.leclercdrive.fr', '_blank')">
+                    <button class="supermarche-btn leclerc" onclick="choisirSupermarche('Leclerc Drive', 'https://www.leclercdrive.fr', false)">
                         🛍️ Leclerc Drive
                     </button>
-                    <button class="supermarche-btn intermarche" onclick="window.open('https://www.intermarche.com', '_blank')">
+                    <button class="supermarche-btn intermarche" onclick="choisirSupermarche('Intermarché', 'https://www.intermarche.com', false)">
                         🏬 Intermarché
                     </button>
+                </div>
+
+                <div id="supermarche-choisi" style="display:none;">
+                    <div style="background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 1.1em;">
+                        📍 Supermarché sélectionné : <span id="nom-supermarche"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1205,6 +1227,9 @@
         let recetteActive = null;
         let prochainId = 100;
         let ingredientsCopies = new Set();
+        let supermarcheChoisi = null;
+        let urlSupermarche = null;
+        let rechercheDirecte = false;
 
         function getToutesRecettes() {
             return [...recettesPredefinies, ...recettesPerso];
@@ -1414,9 +1439,15 @@
                                 <div class="ingredient-actions">
                                     ${estCopie ? 
                                         '<span class="check-mark">✓</span>' :
-                                        `<button class="copy-ingredient-btn" onclick="copierIngredient('${nom.replace(/'/g, "\\'")}')">
-                                            📋 Copier
-                                        </button>`
+                                        supermarcheChoisi ? 
+                                            (rechercheDirecte ? 
+                                                `<button class="search-ingredient-btn" onclick="rechercherIngredient('${nom.replace(/'/g, "\\'")}')">
+                                                    🔍 Rechercher
+                                                </button>` :
+                                                `<button class="copy-ingredient-btn" onclick="copierIngredient('${nom.replace(/'/g, "\\'")}')">
+                                                    📋 Copier
+                                                </button>`)
+                                            : ''
                                     }
                                 </div>
                             </div>
@@ -1468,13 +1499,50 @@
             });
         }
 
+        function choisirSupermarche(nom, url, directSearch) {
+            supermarcheChoisi = nom;
+            urlSupermarche = url;
+            rechercheDirecte = directSearch;
+            ingredientsCopies.clear();
+            
+            // Afficher le supermarché choisi
+            document.getElementById('supermarche-choisi').style.display = 'block';
+            document.getElementById('nom-supermarche').textContent = nom;
+            
+            // Rafraîchir la liste pour afficher les bons boutons
+            mettreAJourCourses();
+            
+            // Scroll vers la liste
+            document.getElementById('courses-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            if (directSearch) {
+                alert(`✅ ${nom} sélectionné !\n\n🔍 Mode Recherche Directe\nCliquez sur "Rechercher" pour chaque ingrédient.\nUn onglet s'ouvrira avec les résultats.`);
+            } else {
+                alert(`✅ ${nom} sélectionné !\n\n📋 Mode Copier-Coller\nCliquez sur "Copier" pour chaque ingrédient.\nPuis collez dans la barre de recherche du site.`);
+            }
+        }
+
+        function rechercherIngredient(nomIngredient) {
+            // Marquer comme copié
+            ingredientsCopies.add(nomIngredient);
+            
+            // Ouvrir recherche directe
+            const recherche = encodeURIComponent(nomIngredient);
+            window.open(urlSupermarche + recherche, '_blank');
+            
+            // Rafraîchir l'affichage
+            mettreAJourCourses();
+        }
+
         function copierIngredient(nomIngredient) {
             navigator.clipboard.writeText(nomIngredient).then(() => {
                 // Marquer comme copié
                 ingredientsCopies.add(nomIngredient);
-                mettreAJourCourses();
                 
-                // Message de confirmation discret
+                // Ouvrir le site du supermarché
+                window.open(urlSupermarche, '_blank');
+                
+                // Notification
                 const notification = document.createElement('div');
                 notification.style.cssText = `
                     position: fixed;
@@ -1489,13 +1557,16 @@
                     z-index: 10000;
                     animation: slideIn 0.3s ease;
                 `;
-                notification.textContent = `✓ "${nomIngredient}" copié !`;
+                notification.textContent = `✓ "${nomIngredient}" copié ! Collez sur le site.`;
                 document.body.appendChild(notification);
                 
                 setTimeout(() => {
                     notification.style.animation = 'slideOut 0.3s ease';
                     setTimeout(() => notification.remove(), 300);
-                }, 2000);
+                }, 3000);
+                
+                // Rafraîchir l'affichage
+                mettreAJourCourses();
             }).catch(() => {
                 alert(`❌ Erreur : impossible de copier "${nomIngredient}"`);
             });
