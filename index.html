@@ -560,6 +560,7 @@
             background: rgba(0,0,0,0.8);
             z-index: 1000;
             animation: fadeIn 0.3s ease;
+            overflow-y: auto;
         }
 
         .modal.active {
@@ -567,6 +568,11 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+        }
+
+        .modal-results {
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .modal-content {
@@ -1057,6 +1063,18 @@
 
                     <button type="submit" class="btn-primary">💾 Sauvegarder la Recette</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RÉSULTATS DE RECHERCHE -->
+    <div id="modal-resultats" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="fermerModalResultats()">×</button>
+                <h2 id="titre-resultats">📚 Résultats de recherche</h2>
+            </div>
+            <div class="modal-body modal-results" id="contenu-resultats">
             </div>
         </div>
     </div>
@@ -1687,7 +1705,7 @@
                 const data = await response.json();
                 
                 if (data.meals) {
-                    recettesAPI = data.meals.map(meal => {
+                    const resultats = data.meals.map(meal => {
                         // Extraire les ingrédients
                         const ingredients = [];
                         for (let i = 1; i <= 20; i++) {
@@ -1717,10 +1735,7 @@
                         };
                     });
                     
-                    alert(`✅ ${recettesAPI.length} recette(s) trouvée(s) !`);
-                    categorieActive = 'Tous';
-                    afficherFiltres();
-                    afficherRecettes();
+                    afficherModalResultats(resultats, query);
                 } else {
                     alert('❌ Aucune recette trouvée. Essayez un autre terme.');
                 }
@@ -1732,6 +1747,57 @@
                 searchBtn.textContent = 'Rechercher';
                 loadingDiv.style.display = 'none';
             }
+        }
+
+        function afficherModalResultats(resultats, query) {
+            const modal = document.getElementById('modal-resultats');
+            const titre = document.getElementById('titre-resultats');
+            const contenu = document.getElementById('contenu-resultats');
+            
+            titre.textContent = `📚 ${resultats.length} recette(s) trouvée(s) pour "${query}"`;
+            
+            contenu.innerHTML = resultats.map(r => `
+                <div class="recette-item" style="margin-bottom: 15px;" onclick="ajouterRecetteAPI(${r.id.replace('api_', '')})">
+                    ${r.image ? `<img src="${r.image}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 15px; margin-bottom: 10px;">` : ''}
+                    <span class="badge">${r.cat}</span>
+                    <span class="api-source">${r.source}</span>
+                    <h3>${r.nom}</h3>
+                    <div style="display: flex; gap: 15px; color: #666; font-size: 0.95em; margin-top: 10px;">
+                        <span>⏱️ ${r.temps}</span>
+                        <span>👥 ${r.p} pers.</span>
+                        <span>🛒 ${r.ing.length} ingrédients</span>
+                    </div>
+                    <button class="btn-primary" style="margin-top: 10px; padding: 10px 20px; font-size: 0.9em;" onclick="event.stopPropagation(); ajouterRecetteAPI(${r.id.replace('api_', '')})">
+                        ➕ Ajouter à mes recettes
+                    </button>
+                </div>
+            `).join('');
+            
+            // Stocker temporairement les résultats
+            window.resultatsRecherche = resultats;
+            
+            modal.classList.add('active');
+        }
+
+        function fermerModalResultats() {
+            document.getElementById('modal-resultats').classList.remove('active');
+        }
+
+        function ajouterRecetteAPI(mealId) {
+            const recette = window.resultatsRecherche.find(r => r.id === `api_${mealId}`);
+            if (!recette) return;
+            
+            // Vérifier si la recette existe déjà
+            const existe = recettesAPI.find(r => r.id === recette.id);
+            if (existe) {
+                alert('ℹ️ Cette recette est déjà dans votre liste !');
+                return;
+            }
+            
+            recettesAPI.push(recette);
+            alert(`✅ "${recette.nom}" ajoutée à vos recettes !`);
+            afficherRecettes();
+            fermerModalResultats();
         }
 
         // Générer une recette avec l'IA
@@ -1749,41 +1815,57 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "anthropic-version": "2023-06-01"
                     },
                     body: JSON.stringify({
                         model: "claude-sonnet-4-20250514",
-                        max_tokens: 1000,
+                        max_tokens: 1500,
                         messages: [{
                             role: "user",
-                            content: `Crée une recette détaillée pour: "${recetteNom}". 
+                            content: `Tu es un chef cuisinier expert. Crée une recette complète et détaillée pour: "${recetteNom}". 
                             
-Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
+Réponds UNIQUEMENT avec un objet JSON valide (pas de texte avant ou après), avec cette structure exacte:
 {
-  "nom": "Nom de la recette",
-  "categorie": "Pâtes|Viandes|Poissons|Végétarien|Soupes|Salades|Tartes|Desserts",
+  "nom": "Nom appétissant de la recette",
+  "categorie": "Pâtes ou Viandes ou Poissons ou Végétarien ou Soupes ou Salades ou Tartes ou Desserts",
   "temps": "30min",
   "portions": 4,
   "ingredients": [
-    {"nom": "ingredient 1", "quantite": "200g"},
-    {"nom": "ingredient 2", "quantite": "3 unités"}
+    {"nom": "Tomates", "quantite": "500g"},
+    {"nom": "Oignons", "quantite": "2"}
   ],
   "etapes": [
-    "Étape 1 de préparation",
-    "Étape 2 de préparation"
+    "Étape 1 claire et précise",
+    "Étape 2 claire et précise",
+    "Étape 3 claire et précise"
   ]
-}`
+}
+
+IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte additionnel.`
                         }]
                     })
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`Erreur API: ${response.status}`);
+                }
+                
                 const data = await response.json();
-                const texte = data.content[0].text;
+                let texte = data.content[0].text.trim();
+                
+                // Nettoyer le texte
+                texte = texte.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
                 
                 // Extraire le JSON
-                const jsonMatch = texte.match(/\{[\s\S]*\}/);
-                if (!jsonMatch) throw new Error('Format JSON invalide');
-                
-                const recetteData = JSON.parse(jsonMatch[0]);
+                let recetteData;
+                try {
+                    recetteData = JSON.parse(texte);
+                } catch (e) {
+                    // Si échec, essayer de trouver le JSON dans le texte
+                    const jsonMatch = texte.match(/\{[\s\S]*\}/);
+                    if (!jsonMatch) throw new Error('Format JSON invalide');
+                    recetteData = JSON.parse(jsonMatch[0]);
+                }
                 
                 // Créer la nouvelle recette
                 const nouvelleRecette = {
@@ -1808,7 +1890,7 @@ Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
                 
             } catch (error) {
                 console.error('Erreur IA:', error);
-                alert('❌ Erreur lors de la génération. Réessayez.');
+                alert(`❌ Erreur lors de la génération: ${error.message}\n\nL'IA n'est peut-être pas disponible dans cet environnement.`);
             } finally {
                 loadingDiv.style.display = 'none';
                 loadingDiv.innerHTML = '🔄 Recherche en cours...';
@@ -2057,6 +2139,7 @@ Réponds UNIQUEMENT en JSON valide avec cette structure exacte:
         window.onclick = function(event) {
             if (event.target.id === 'modal') fermerModal();
             if (event.target.id === 'modal-nouvelle-recette') fermerModalNouvelleRecette();
+            if (event.target.id === 'modal-resultats') fermerModalResultats();
         }
 
         init();
