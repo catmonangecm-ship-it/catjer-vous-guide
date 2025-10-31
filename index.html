@@ -1,0 +1,243 @@
+const recettesPredefinies = [
+            // PÂTES
+            { id: 1, nom: "Pâtes Carbonara", cat: "Pâtes", temps: "20min", p: 4, perso: false,
+                ing: [{n:"Spaghetti",q:"400g"}, {n:"Lardons",q:"200g"}, {n:"Œufs",q:"4"}, {n:"Parmesan",q:"100g"}, {n:"Crème",q:"20cl"}],
+                rec: ["Cuire les pâtes al dente.", "Faire revenir les lardons.", "Mélanger œufs, crème et parmesan.", "Ajouter aux pâtes hors du feu.", "Poivrer généreusement."]
+            },
+            { id: 2, nom: "Pâtes Bolognaise", cat: "Pâtes", temps: "45min", p: 4, perso: false,
+                ing: [{n:"Pâtes",q:"400g"}, {n:"Viande hachée",q:"500g"}, {n:"Tomates",q:"800g"}, {n:"Oignons",q:"2"}, {n:"Ail",q:"3 gousses"}],
+                rec: ["Faire revenir oignons et ail.", "Ajouter la viande et dorer.", "Ajouter tomates et herbes.", "Mijoter 30min.", "Servir sur pâtes."]
+            },
+            { id: 9, nom: "Lasagnes", cat: "Pâtes", temps: "1h30", p: 6, perso: false,
+                ing: [{n:"Plaques lasagnes",q:"12"}, {n:"Viande hachée",q:"600g"}, {n:"Béchamel",q:"50cl"}, {n:"Mozzarella",q:"200g"}],
+                rec: ["Préparer bolognaise.", "Alterner pâtes, bolognaise, béchamel.", "Terminer par fromages.", "Four 180°C 40min."]
+            },
+            { id: 13, nom: "Pâtes aux Fruits de Mer", cat: "Pâtes", temps: "30min", p: 4, perso: false,
+                ing: [{n:"Linguine",q:"400g"}, {n:"Fruits de mer",q:"500g"}, {n:"Ail",q:"4 gousses"}, {n:"Vin blanc",q:"15cl"}, {n:"Persil",q:"1 bouquet"}],
+                rec: ["Cuire les pâtes.", "Faire revenir ail dans huile d'olive.", "Ajouter fruits de mer et vin blanc.", "Mélanger avec pâtes et persil.", "Servir immédiatement."]
+            },
+            { id: 14, nom: "Pâtes Pesto", cat: "Pâtes", temps: "15min", p: 4, perso: false,
+                ing: [{n:"Pâtes courtes",q:"400g"}, {n:"Pesto",q:"150g"}, {n:"Tomates cerises",q:"250g"}, {n:"Parmesan",q:"80g"}, {n:"Pignons",q:"50g"}],
+                rec: ["Cuire les pâtes.", "Griller les pignons.", "Mélanger pâtes chaudes avec pesto.", "Ajouter tomates coupées.", "Parsemer de parmesan et pignons."]
+            },
+            { id: 15, nom: "Pâtes à la Crème de Champignons", cat: "Pâtes", temps: "25min", p: 4, perso: false,
+                ing: [{n:"Tagliatelles",q:"400g"}, {n:"Champignons",q:"500g"}, {n:"Crème fraîche",q:"30cl"}, {n:"Échalotes",q:"3"}, {n:"Persil",q:"1 bouquet"}],
+                rec: ["Cuire les pâtes.", "Faire revenir échalotes et champignons.", "Ajouter crème et laisser réduire.", "Mélanger avec pâtes.", "Parsemer de persil."]
+            },
+            
+            // VIANDES
+            { id: 3, nom: "Poulet Rôti", cat: "Viandes", temps: "1h30", p: 4, perso: false,
+                ing: [{n:"Poulet",q:"1.5kg"}, {n:"Pommes de terre",q:"800g"}, {n:"Carottes",q:"500g"}, {n:"Herbes",q:"2 c.à.s"}],
+                rec: ["Préchauffer four 200°C.", "Assaisonner le poulet.", "Disposer légumes autour.", "Enfourner 1h30.", "Arroser régulièrement."]
+            },
+            { id: 16, nom: "Poulet Curry", cat: "Viandes", temps: "35min", p: 4, perso: false,
+                ing: [{n:"Blancs de poulet",q:"4"}, {n:"Curry",q:"3 c.à.s"}, {n:"Lait coco",q:"40cl"}, {n:"Oignons",q:"2"}, {n:"Riz",q:"300g"}],
+                rec: ["Couper poulet en morceaux.", "Faire revenir avec oignons.", "Ajouter curry et lait coco.", "Mijoter 20min.", "Servir avec riz."]
+            },
+            { id: 17, nom: "Bœuf Bourguignon", cat: "Viandes", temps: "2h30", p: 6, perso: false,
+                ing: [{n:"Bœuf",q:"1kg"}, {n:"Vin rouge",q:"75cl"}, {n:"Carottes",q:"4"}, {n:"Oignons",q:"3"}, {n:"Lardons",q:"200g"}],
+                rec: ["Faire dorer la viande.", "Ajouter légumes et lardons.", "Mouiller au vin rouge.", "Mijoter 2h à feu doux.", "Servir avec pâtes ou pommes de terre."]
+            },
+            { id: 18, nom: "Escalope Milanaise", cat: "Viandes", temps: "25min", p: 4, perso: false,
+                ing: [{n:"Escalopes veau",q:"4"}, {n:"Chapelure",q:"150g"}, {n:"Œufs",q:"2"}, {n:"Parmesan",q:"50g"}, {n:"Citron",q:"2"}],
+                rec: ["Aplatir les escalopes.", "Paner avec œuf puis chapelure-parmesan.", "Faire frire 3min par côté.", "Servir avec quartiers de citron.", "Accompagner de salade ou spaghetti."]
+            },
+            { id: 19, nom: "Côtes d'Agneau Grillées", cat: "Viandes", temps: "20min", p: 4, perso: false,
+                ing: [{n:"Côtes d'agneau",q:"8"}, {n:"Romarin",q:"3 branches"}, {n:"Ail",q:"4 gousses"}, {n:"Huile olive",q:"4 c.à.s"}],
+                rec: ["Mariner agneau avec ail et romarin 1h.", "Préchauffer grill.", "Griller 3-4min par côté.", "Laisser reposer 5min.", "Servir avec légumes grillés."]
+            },
+            { id: 20, nom: "Blanquette de Veau", cat: "Viandes", temps: "2h", p: 6, perso: false,
+                ing: [{n:"Veau",q:"1kg"}, {n:"Carottes",q:"3"}, {n:"Champignons",q:"300g"}, {n:"Crème",q:"20cl"}, {n:"Citron",q:"1"}],
+                rec: ["Cuire veau dans bouillon 1h30.", "Ajouter carottes et champignons.", "Lier sauce avec crème et jaune d'œuf.", "Ajouter jus de citron.", "Servir avec riz."]
+            },
+            
+            // POISSONS
+            { id: 4, nom: "Saumon Grillé", cat: "Poissons", temps: "20min", p: 4, perso: false,
+                ing: [{n:"Filets saumon",q:"4"}, {n:"Citron",q:"2"}, {n:"Aneth",q:"1 bouquet"}, {n:"Beurre",q:"50g"}],
+                rec: ["Cuire saumon 4min côté peau.", "Retourner 3min.", "Ajouter beurre citronné.", "Parsemer d'aneth."]
+            },
+            { id: 21, nom: "Cabillaud au Four", cat: "Poissons", temps: "30min", p: 4, perso: false,
+                ing: [{n:"Filets cabillaud",q:"4"}, {n:"Tomates",q:"4"}, {n:"Olives",q:"100g"}, {n:"Basilic",q:"1 bouquet"}, {n:"Ail",q:"3 gousses"}],
+                rec: ["Disposer poisson dans plat.", "Ajouter tomates coupées, olives, ail.", "Arroser d'huile d'olive.", "Four 180°C 25min.", "Parsemer de basilic."]
+            },
+            { id: 22, nom: "Sole Meunière", cat: "Poissons", temps: "15min", p: 4, perso: false,
+                ing: [{n:"Soles",q:"4"}, {n:"Farine",q:"100g"}, {n:"Beurre",q:"100g"}, {n:"Citron",q:"2"}, {n:"Persil",q:"1 bouquet"}],
+                rec: ["Fariner les soles.", "Cuire au beurre 3min par côté.", "Faire mousser le beurre.", "Ajouter jus de citron.", "Parsemer de persil."]
+            },
+            { id: 23, nom: "Dorade Sauce Vierge", cat: "Poissons", temps: "25min", p: 4, perso: false,
+                ing: [{n:"Filets dorade",q:"4"}, {n:"Tomates",q:"4"}, {n:"Basilic",q:"1 bouquet"}, {n:"Huile olive",q:"10cl"}, {n:"Citron",q:"1"}],
+                rec: ["Griller les filets de dorade.", "Concasser tomates avec basilic.", "Mélanger avec huile d'olive et citron.", "Verser sauce sur poisson.", "Servir tiède."]
+            },
+            
+            // VÉGÉTARIEN
+            { id: 6, nom: "Curry de Légumes", cat: "Végétarien", temps: "40min", p: 4, perso: false,
+                ing: [{n:"Lait coco",q:"40cl"}, {n:"Curry",q:"3 c.à.s"}, {n:"Patates douces",q:"400g"}, {n:"Pois chiches",q:"1 boîte"}],
+                rec: ["Revenir curry dans huile.", "Ajouter patates douces.", "Ajouter lait coco et mijoter 20min.", "Ajouter pois chiches."]
+            },
+            { id: 10, nom: "Ratatouille", cat: "Végétarien", temps: "1h", p: 6, perso: false,
+                ing: [{n:"Aubergines",q:"2"}, {n:"Courgettes",q:"3"}, {n:"Poivrons",q:"2"}, {n:"Tomates",q:"6"}],
+                rec: ["Couper légumes en dés.", "Revenir un par un.", "Ajouter tomates et herbes.", "Mijoter 45min."]
+            },
+            { id: 24, nom: "Gratin Dauphinois", cat: "Végétarien", temps: "1h15", p: 6, perso: false,
+                ing: [{n:"Pommes de terre",q:"1.5kg"}, {n:"Crème",q:"50cl"}, {n:"Lait",q:"25cl"}, {n:"Ail",q:"2 gousses"}, {n:"Gruyère",q:"100g"}],
+                rec: ["Trancher finement pommes de terre.", "Frotter plat avec ail.", "Alterner couches de pommes de terre et crème.", "Parsemer de fromage.", "Four 180°C 1h."]
+            },
+            { id: 25, nom: "Buddha Bowl", cat: "Végétarien", temps: "30min", p: 4, perso: false,
+                ing: [{n:"Quinoa",q:"300g"}, {n:"Pois chiches",q:"400g"}, {n:"Avocat",q:"2"}, {n:"Chou rouge",q:"200g"}, {n:"Graines",q:"50g"}],
+                rec: ["Cuire le quinoa.", "Rôtir pois chiches au four.", "Émincer chou rouge.", "Disposer tous ingrédients en cercle.", "Ajouter sauce tahini."]
+            },
+            { id: 26, nom: "Couscous Végétarien", cat: "Végétarien", temps: "50min", p: 6, perso: false,
+                ing: [{n:"Semoule",q:"500g"}, {n:"Courgettes",q:"3"}, {n:"Carottes",q:"4"}, {n:"Pois chiches",q:"400g"}, {n:"Épices",q:"3 c.à.s"}],
+                rec: ["Faire revenir légumes avec épices.", "Ajouter pois chiches et bouillon.", "Mijoter 30min.", "Préparer semoule à la vapeur.", "Servir ensemble."]
+            },
+            
+            // SOUPES
+            { id: 8, nom: "Soupe à l'Oignon", cat: "Soupes", temps: "1h", p: 4, perso: false,
+                ing: [{n:"Oignons",q:"1kg"}, {n:"Bouillon",q:"1.5L"}, {n:"Pain",q:"4 tranches"}, {n:"Gruyère",q:"150g"}],
+                rec: ["Caraméliser oignons 30min.", "Ajouter bouillon.", "Mijoter 20min.", "Gratiner avec pain et fromage."]
+            },
+            { id: 27, nom: "Velouté de Potiron", cat: "Soupes", temps: "40min", p: 6, perso: false,
+                ing: [{n:"Potiron",q:"1kg"}, {n:"Pommes de terre",q:"300g"}, {n:"Bouillon",q:"1L"}, {n:"Crème",q:"15cl"}, {n:"Muscade",q:"1 pincée"}],
+                rec: ["Couper potiron et pommes de terre.", "Cuire dans bouillon 30min.", "Mixer finement.", "Ajouter crème et muscade.", "Servir avec croûtons."]
+            },
+            { id: 28, nom: "Minestrone", cat: "Soupes", temps: "45min", p: 6, perso: false,
+                ing: [{n:"Haricots blancs",q:"400g"}, {n:"Tomates",q:"400g"}, {n:"Légumes variés",q:"500g"}, {n:"Pâtes courtes",q:"100g"}, {n:"Parmesan",q:"80g"}],
+                rec: ["Faire revenir légumes.", "Ajouter tomates et haricots.", "Mouiller et mijoter 30min.", "Ajouter pâtes 10min avant la fin.", "Servir avec parmesan."]
+            },
+            { id: 29, nom: "Soupe Miso", cat: "Soupes", temps: "15min", p: 4, perso: false,
+                ing: [{n:"Miso",q:"4 c.à.s"}, {n:"Tofu",q:"200g"}, {n:"Algues wakame",q:"10g"}, {n:"Champignons",q:"150g"}, {n:"Oignons verts",q:"4"}],
+                rec: ["Porter eau à frémissement.", "Délayer miso.", "Ajouter tofu coupé en dés.", "Ajouter algues et champignons.", "Parsemer d'oignons verts."]
+            },
+            
+            // SALADES
+            { id: 5, nom: "Salade César", cat: "Salades", temps: "20min", p: 4, perso: false,
+                ing: [{n:"Laitue romaine",q:"2"}, {n:"Poulet",q:"2 blancs"}, {n:"Croûtons",q:"100g"}, {n:"Parmesan",q:"80g"}],
+                rec: ["Griller le poulet.", "Mélanger salade et sauce.", "Ajouter croûtons et parmesan."]
+            },
+            { id: 30, nom: "Salade Niçoise", cat: "Salades", temps: "25min", p: 4, perso: false,
+                ing: [{n:"Thon",q:"300g"}, {n:"Tomates",q:"4"}, {n:"Œufs",q:"4"}, {n:"Haricots verts",q:"200g"}, {n:"Olives",q:"100g"}],
+                rec: ["Cuire œufs durs et haricots.", "Couper tomates en quartiers.", "Disposer tous ingrédients.", "Ajouter thon émietté.", "Assaisonner vinaigrette."]
+            },
+            { id: 31, nom: "Taboulé", cat: "Salades", temps: "30min", p: 6, perso: false,
+                ing: [{n:"Semoule fine",q:"300g"}, {n:"Tomates",q:"5"}, {n:"Concombre",q:"1"}, {n:"Menthe",q:"1 bouquet"}, {n:"Citron",q:"3"}],
+                rec: ["Hydrater semoule eau bouillante.", "Concasser tomates et concombre.", "Hacher finement menthe.", "Mélanger tous ingrédients.", "Assaisonner citron et huile."]
+            },
+            
+            // TARTES
+            { id: 7, nom: "Quiche Lorraine", cat: "Tartes", temps: "55min", p: 6, perso: false,
+                ing: [{n:"Pâte brisée",q:"1"}, {n:"Lardons",q:"200g"}, {n:"Œufs",q:"3"}, {n:"Crème",q:"200ml"}, {n:"Gruyère",q:"100g"}],
+                rec: ["Étaler pâte.", "Disposer lardons.", "Verser mélange œufs-crème.", "Ajouter fromage.", "Four 180°C 40min."]
+            },
+            { id: 32, nom: "Tarte aux Poireaux", cat: "Tartes", temps: "50min", p: 6, perso: false,
+                ing: [{n:"Pâte brisée",q:"1"}, {n:"Poireaux",q:"4"}, {n:"Crème",q:"20cl"}, {n:"Œufs",q:"2"}, {n:"Fromage",q:"100g"}],
+                rec: ["Faire fondre poireaux.", "Disposer sur pâte.", "Verser mélange œufs-crème.", "Parsemer de fromage.", "Four 180°C 35min."]
+            },
+            { id: 33, nom: "Tarte Tomates Mozzarella", cat: "Tartes", temps: "45min", p: 6, perso: false,
+                ing: [{n:"Pâte feuilletée",q:"1"}, {n:"Tomates",q:"6"}, {n:"Mozzarella",q:"250g"}, {n:"Basilic",q:"1 bouquet"}, {n:"Moutarde",q:"2 c.à.s"}],
+                rec: ["Étaler pâte et badigeonner de moutarde.", "Disposer tomates en tranches.", "Ajouter mozzarella.", "Four 180°C 35min.", "Parsemer de basilic frais."]
+            },
+            
+            // DESSERTS
+            { id: 11, nom: "Tiramisu", cat: "Desserts", temps: "4h", p: 8, perso: false,
+                ing: [{n:"Mascarpone",q:"500g"}, {n:"Œufs",q:"4"}, {n:"Sucre",q:"100g"}, {n:"Biscuits",q:"300g"}, {n:"Café",q:"30cl"}],
+                rec: ["Battre jaunes et sucre.", "Ajouter mascarpone.", "Monter blancs en neige.", "Tremper biscuits dans café.", "Alterner couches.", "Réfrigérer 4h."]
+            },
+            { id: 12, nom: "Tarte aux Pommes", cat: "Desserts", temps: "50min", p: 6, perso: false,
+                ing: [{n:"Pâte sablée",q:"1"}, {n:"Pommes",q:"6"}, {n:"Sucre",q:"80g"}, {n:"Cannelle",q:"1 c.à.c"}],
+                rec: ["Étaler pâte.", "Disposer pommes en rosace.", "Saupoudrer sucre et cannelle.", "Four 180°C 40min."]
+            },
+            { id: 34, nom: "Fondant au Chocolat", cat: "Desserts", temps: "30min", p: 6, perso: false,
+                ing: [{n:"Chocolat noir",q:"200g"}, {n:"Beurre",q:"150g"}, {n:"Œufs",q:"4"}, {n:"Sucre",q:"150g"}, {n:"Farine",q:"50g"}],
+                rec: ["Faire fondre chocolat et beurre.", "Battre œufs et sucre.", "Mélanger le tout.", "Ajouter farine tamisée.", "Four 180°C 15-20min."]
+            },
+            { id: 35, nom: "Crème Brûlée", cat: "Desserts", temps: "4h", p: 6, perso: false,
+                ing: [{n:"Crème liquide",q:"50cl"}, {n:"Jaunes d'œufs",q:"6"}, {n:"Sucre",q:"100g"}, {n:"Vanille",q:"1 gousse"}],
+                rec: ["Infuser vanille dans crème chaude.", "Mélanger jaunes et sucre.", "Incorporer crème progressivement.", "Cuire au bain-marie 160°C 40min.", "Réfrigérer 3h puis caraméliser."]
+            },
+            { id: 36, nom: "Mousse au Chocolat", cat: "Desserts", temps: "3h", p: 6, perso: false,
+                ing: [{n:"Chocolat noir",q:"200g"}, {n:"Œufs",q:"6"}, {n:"Sucre",q:"50g"}],
+                rec: ["Faire fondre chocolat.", "Séparer blancs et jaunes.", "Mélanger jaunes au chocolat.", "Monter blancs en neige avec sucre.", "Incorporer délicatement.", "Réfrigérer 2h."]
+            },
+            
+            // RECETTES DIABÉTIQUE
+            { id: 37, nom: "Poulet aux Légumes Vapeur", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+                ing: [{n:"Blancs de poulet",q:"4"}, {n:"Brocolis",q:"400g"}, {n:"Haricots verts",q:"300g"}, {n:"Citron",q:"1"}, {n:"Herbes",q:"2 c.à.s"}],
+                rec: ["Cuire poulet à la vapeur 20min.", "Cuire légumes à la vapeur 15min.", "Assaisonner avec citron et herbes.", "Servir avec un filet d'huile d'olive.", "Éviter les sauces grasses."]
+            },
+            { id: 38, nom: "Saumon aux Épinards", cat: "Diabétique", temps: "25min", p: 4, perso: false,
+                ing: [{n:"Filets saumon",q:"4"}, {n:"Épinards frais",q:"500g"}, {n:"Ail",q:"2 gousses"}, {n:"Citron",q:"1"}],
+                rec: ["Cuire saumon au four 180°C 15min.", "Faire tomber épinards avec ail.", "Servir saumon sur lit d'épinards.", "Arroser de jus de citron.", "Sans ajout de matières grasses."]
+            },
+            { id: 39, nom: "Salade de Lentilles", cat: "Diabétique", temps: "35min", p: 4, perso: false,
+                ing: [{n:"Lentilles vertes",q:"300g"}, {n:"Tomates",q:"3"}, {n:"Concombre",q:"1"}, {n:"Oignon rouge",q:"1"}, {n:"Persil",q:"1 bouquet"}],
+                rec: ["Cuire lentilles 25min.", "Couper légumes en petits dés.", "Mélanger lentilles refroidies et légumes.", "Assaisonner vinaigrette légère.", "Riche en fibres, faible IG."]
+            },
+            { id: 40, nom: "Poisson Blanc en Papillote", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+                ing: [{n:"Filets cabillaud",q:"4"}, {n:"Courgettes",q:"2"}, {n:"Tomates cerises",q:"200g"}, {n:"Basilic",q:"1 bouquet"}, {n:"Citron",q:"1"}],
+                rec: ["Couper légumes en rondelles.", "Disposer poisson et légumes en papillote.", "Ajouter herbes et citron.", "Four 180°C 20min.", "Sans matières grasses ajoutées."]
+            },
+            { id: 41, nom: "Soupe de Légumes Maison", cat: "Diabétique", temps: "40min", p: 6, perso: false,
+                ing: [{n:"Carottes",q:"3"}, {n:"Poireaux",q:"2"}, {n:"Céleri",q:"2 branches"}, {n:"Courgettes",q:"2"}, {n:"Bouillon",q:"1.5L"}],
+                rec: ["Couper tous légumes en morceaux.", "Faire revenir sans matière grasse.", "Ajouter bouillon et cuire 30min.", "Mixer ou laisser en morceaux.", "Pas de pommes de terre (IG élevé)."]
+            },
+            { id: 42, nom: "Omelette aux Champignons", cat: "Diabétique", temps: "15min", p: 2, perso: false,
+                ing: [{n:"Œufs",q:"4"}, {n:"Champignons",q:"200g"}, {n:"Oignon",q:"1"}, {n:"Persil",q:"1 bouquet"}],
+                rec: ["Faire revenir champignons et oignon.", "Battre les œufs.", "Verser sur champignons.", "Cuire à feu doux.", "Riche en protéines, sans glucides."]
+            },
+            { id: 43, nom: "Dinde aux Haricots Verts", cat: "Diabétique", temps: "35min", p: 4, perso: false,
+                ing: [{n:"Escalopes dinde",q:"4"}, {n:"Haricots verts",q:"600g"}, {n:"Tomates",q:"3"}, {n:"Oignon",q:"1"}, {n:"Herbes de Provence",q:"1 c.à.s"}],
+                rec: ["Cuire haricots verts à la vapeur.", "Griller escalopes sans matière grasse.", "Faire une sauce tomate légère.", "Servir ensemble.", "Repas équilibré et léger."]
+            },
+            { id: 44, nom: "Salade de Quinoa aux Légumes", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+                ing: [{n:"Quinoa",q:"250g"}, {n:"Poivrons",q:"2"}, {n:"Concombre",q:"1"}, {n:"Tomates cerises",q:"200g"}, {n:"Menthe",q:"1 bouquet"}],
+                rec: ["Cuire quinoa selon instructions.", "Couper légumes en petits dés.", "Mélanger quinoa refroidi et légumes.", "Assaisonner citron et herbes.", "IG bas, riche en protéines."]
+            },
+            { id: 45, nom: "Ratatouille Légère", cat: "Diabétique", temps: "45min", p: 6, perso: false,
+                ing: [{n:"Aubergines",q:"2"}, {n:"Courgettes",q:"3"}, {n:"Poivrons",q:"2"}, {n:"Tomates",q:"5"}, {n:"Ail",q:"3 gousses"}],
+                rec: ["Couper légumes en dés.", "Cuire séparément sans huile.", "Mélanger tous légumes.", "Ajouter tomates et ail.", "Mijoter 30min, 100% légumes."]
+            },
+            { id: 46, nom: "Cabillaud aux Légumes Grillés", cat: "Diabétique", temps: "35min", p: 4, perso: false,
+                ing: [{n:"Filets cabillaud",q:"4"}, {n:"Courgettes",q:"2"}, {n:"Aubergine",q:"1"}, {n:"Poivrons",q:"2"}, {n:"Thym",q:"2 branches"}],
+                rec: ["Trancher légumes finement.", "Griller légumes au four.", "Cuire cabillaud au four 180°C 15min.", "Servir poisson sur légumes.", "Minimal en matières grasses."]
+            },
+            { id: 47, nom: "Curry de Poulet Léger", cat: "Diabétique", temps: "40min", p: 4, perso: false,
+                ing: [{n:"Blancs poulet",q:"4"}, {n:"Curry",q:"2 c.à.s"}, {n:"Lait coco light",q:"30cl"}, {n:"Brocolis",q:"400g"}, {n:"Oignon",q:"1"}],
+                rec: ["Couper poulet en morceaux.", "Faire revenir avec curry.", "Ajouter lait coco allégé.", "Ajouter brocolis.", "Mijoter 25min, servir sans riz."]
+            },
+            { id: 48, nom: "Courgettes Farcies", cat: "Diabétique", temps: "50min", p: 4, perso: false,
+                ing: [{n:"Courgettes",q:"4"}, {n:"Viande hachée maigre",q:"300g"}, {n:"Tomates",q:"2"}, {n:"Oignon",q:"1"}, {n:"Herbes",q:"2 c.à.s"}],
+                rec: ["Évider courgettes.", "Préparer farce viande-tomates.", "Farcir courgettes.", "Four 180°C 35min.", "Sans fromage ajouté."]
+            },
+            { id: 49, nom: "Salade Grecque Light", cat: "Diabétique", temps: "15min", p: 4, perso: false,
+                ing: [{n:"Tomates",q:"4"}, {n:"Concombre",q:"1"}, {n:"Poivron",q:"1"}, {n:"Olives",q:"50g"}, {n:"Feta allégée",q:"100g"}],
+                rec: ["Couper légumes en dés.", "Ajouter olives et feta.", "Assaisonner huile d'olive et citron.", "Ajouter origan.", "Frais et peu calorique."]
+            },
+            { id: 50, nom: "Blanc de Poulet Grillé Épicé", cat: "Diabétique", temps: "25min", p: 4, perso: false,
+                ing: [{n:"Blancs poulet",q:"4"}, {n:"Paprika",q:"1 c.à.s"}, {n:"Cumin",q:"1 c.à.c"}, {n:"Citron",q:"1"}, {n:"Salade verte",q:"400g"}],
+                rec: ["Mariner poulet avec épices et citron.", "Griller sans matière grasse.", "Servir avec salade verte.", "Assaisonner vinaigre balsamique.", "Protéines pures, 0 glucides."]
+            },
+            { id: 51, nom: "Velouté de Brocolis Sans Crème", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+                ing: [{n:"Brocolis",q:"800g"}, {n:"Bouillon",q:"1L"}, {n:"Oignon",q:"1"}, {n:"Ail",q:"2 gousses"}],
+                rec: ["Faire revenir oignon et ail.", "Ajouter brocolis et bouillon.", "Cuire 20min.", "Mixer finement.", "Sans crème, onctueux naturellement."]
+            },
+            { id: 52, nom: "Pavé de Saumon aux Asperges", cat: "Diabétique", temps: "25min", p: 4, perso: false,
+                ing: [{n:"Pavés saumon",q:"4"}, {n:"Asperges vertes",q:"500g"}, {n:"Citron",q:"1"}, {n:"Aneth",q:"1 bouquet"}],
+                rec: ["Cuire asperges vapeur 10min.", "Griller saumon 4min par côté.", "Arroser de citron.", "Parsemer d'aneth.", "Oméga-3, légumes verts."]
+            },
+            { id: 53, nom: "Tomates Farcies Légères", cat: "Diabétique", temps: "1h", p: 4, perso: false,
+                ing: [{n:"Grosses tomates",q:"8"}, {n:"Viande hachée 5%",q:"400g"}, {n:"Oignon",q:"1"}, {n:"Persil",q:"1 bouquet"}, {n:"Ail",q:"2 gousses"}],
+                rec: ["Évider tomates.", "Préparer farce viande-herbes.", "Farcir tomates.", "Four 180°C 45min.", "Sans riz dans la farce."]
+            },
+            { id: 54, nom: "Poulet Tandoori Sans Yaourt", cat: "Diabétique", temps: "2h30", p: 4, perso: false,
+                ing: [{n:"Cuisses poulet",q:"8"}, {n:"Épices tandoori",q:"3 c.à.s"}, {n:"Citron",q:"2"}, {n:"Ail",q:"4 gousses"}],
+                rec: ["Mariner poulet 2h avec épices et citron.", "Cuire au four 200°C 40min.", "Servir avec légumes verts.", "Sans yaourt ni matières grasses.", "Savoureux et sain."]
+            },
+            { id: 55, nom: "Wok de Légumes au Tofu", cat: "Diabétique", temps: "20min", p: 4, perso: false,
+                ing: [{n:"Tofu ferme",q:"400g"}, {n:"Brocolis",q:"300g"}, {n:"Poivrons",q:"2"}, {n:"Champignons",q:"200g"}, {n:"Sauce soja",q:"3 c.à.s"}],
+                rec: ["Couper tofu en dés et légumes.", "Faire sauter au wok sans huile.", "Ajouter sauce soja.", "Cuire 10min à feu vif.", "Protéines végétales, IG bas."]
+            },
+            { id: 56, nom: "Lieu Noir aux Petits Légumes", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+                ing: [{n:"Filets lieu noir",q:"4"}, {n:"Carottes",q:"3"}, {n:"Navets",q:"2"}, {n:"Haricots verts",q:"200g"}, {n:"Citron",q:"1"}],
+                rec: ["Cuire légumes à la vapeur.", "Poêler poisson 3min par côté.", "Servir ensemble.", "Arroser de jus de citron.", "Repas complet léger."]
+            }
+        ];
