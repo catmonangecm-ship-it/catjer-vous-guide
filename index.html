@@ -692,7 +692,27 @@
             cursor: pointer;
             box-shadow: 0 8px 20px rgba(147, 112, 219, 0.4);
             transition: all 0.3s;
-            display: none;
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(147, 112, 219, 0.6);
+        }
+
+        .instruction-box {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border: 3px solid #2196F3;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            color: #1565C0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .instruction-box strong {
+            color: #0D47A1;
+            font-size: 1.1em;
         }
 
         .copy-btn:hover {
@@ -767,19 +787,27 @@
             </div>
             
             <div class="card" id="supermarches-section" style="display:none; margin-top: 25px;">
-                <h2>🏪 Envoyer au Supermarché</h2>
-                <p style="margin-bottom: 25px; color: #666; font-size: 1.1em;">Vos ingrédients seront ajoutés directement dans votre panier en ligne</p>
+                <h2>🏪 Faire vos Courses en Ligne</h2>
+                
+                <div class="instruction-box">
+                    <strong>📋 Comment ça marche :</strong><br>
+                    1️⃣ Copiez votre liste de courses ci-dessous<br>
+                    2️⃣ Cliquez sur votre supermarché préféré<br>
+                    3️⃣ Collez la liste dans la barre de recherche du site<br>
+                    4️⃣ Ajoutez les produits à votre panier !
+                </div>
+
                 <div class="supermarche-grid">
-                    <button class="supermarche-btn carrefour" onclick="envoyerAuPanier('Carrefour', 'https://www.carrefour.fr/recherche?keyword=')">
+                    <button class="supermarche-btn carrefour" onclick="allerAuSupermarche('Carrefour', 'https://www.carrefour.fr')">
                         🛒 Carrefour
                     </button>
-                    <button class="supermarche-btn auchan" onclick="envoyerAuPanier('Auchan', 'https://www.auchan.fr/recherche?text=')">
+                    <button class="supermarche-btn auchan" onclick="allerAuSupermarche('Auchan', 'https://www.auchan.fr')">
                         🏪 Auchan
                     </button>
-                    <button class="supermarche-btn leclerc" onclick="envoyerAuPanier('Leclerc', 'https://www.e.leclerc/recherche?keywords=')">
+                    <button class="supermarche-btn leclerc" onclick="allerAuSupermarche('Leclerc', 'https://www.e.leclerc')">
                         🛍️ Leclerc
                     </button>
-                    <button class="supermarche-btn intermarche" onclick="envoyerAuPanier('Intermarché', 'https://www.intermarche.com/recherche?search=')">
+                    <button class="supermarche-btn intermarche" onclick="allerAuSupermarche('Intermarché', 'https://www.intermarche.com')">
                         🏬 Intermarché
                     </button>
                 </div>
@@ -1327,6 +1355,9 @@
                 supermarchesSection.style.display = 'none';
             } else {
                 coursesDiv.innerHTML = `
+                    <button class="copy-btn" onclick="copierListe()">
+                        📋 Copier la liste complète (${nbIngredients} ingrédients)
+                    </button>
                     <div class="liste-courses">
                         ${Object.entries(ingredients).map(([nom, quantites]) => `
                             <div class="ingredient-item">
@@ -1371,15 +1402,17 @@
             });
 
             const texte = Object.entries(ingredients)
-                .map(([nom, qs]) => `${nom}: ${qs.join(', ')}`)
+                .map(([nom, qs]) => `${nom} (${qs.join(' + ')})`)
                 .join('\n');
             
             navigator.clipboard.writeText(texte).then(() => {
-                alert('✅ Liste copiée dans le presse-papier !');
+                alert('✅ Liste copiée dans le presse-papier !\n\nVous pouvez maintenant :\n1. Cliquer sur votre supermarché\n2. Coller la liste dans la barre de recherche\n3. Ajouter les produits à votre panier');
+            }).catch(() => {
+                alert('❌ Erreur lors de la copie. Veuillez sélectionner et copier manuellement la liste.');
             });
         }
 
-        function envoyerAuPanier(nomSupermarche, urlBase) {
+        function allerAuSupermarche(nomSupermarche, url) {
             const ingredients = {};
             Object.values(planning).forEach(jour => {
                 ['midi', 'soir'].forEach(moment => {
@@ -1401,29 +1434,13 @@
                 return;
             }
 
-            // Ouvrir plusieurs onglets pour rechercher chaque ingrédient
-            let confirmation = confirm(`🛒 ${nomSupermarche}\n\n` +
-                `${listeIngredients.length} ingrédients vont être recherchés.\n\n` +
-                `Un nouvel onglet s'ouvrira pour chaque ingrédient principal.\n\n` +
-                `Voulez-vous continuer ?`);
+            // Copier automatiquement la liste
+            copierListe();
             
-            if (confirmation) {
-                // Prendre les 5 premiers ingrédients principaux pour ne pas surcharger
-                const ingredientsPrincipaux = listeIngredients.slice(0, 5);
-                
-                ingredientsPrincipaux.forEach((ingredient, index) => {
-                    setTimeout(() => {
-                        const recherche = encodeURIComponent(ingredient);
-                        window.open(urlBase + recherche, '_blank');
-                    }, index * 500); // Délai de 500ms entre chaque ouverture
-                });
-
-                setTimeout(() => {
-                    alert(`✅ ${ingredientsPrincipaux.length} recherches lancées sur ${nomSupermarche} !\n\n` +
-                        `Ajoutez les produits à votre panier depuis les onglets ouverts.\n\n` +
-                        (listeIngredients.length > 5 ? `📝 Il reste ${listeIngredients.length - 5} ingrédients à rechercher manuellement.` : ''));
-                }, ingredientsPrincipaux.length * 500 + 500);
-            }
+            // Ouvrir le site du supermarché
+            setTimeout(() => {
+                window.open(url, '_blank');
+            }, 300);
         }
 
         function noterRecette(recetteId, note) {
