@@ -97,11 +97,11 @@
 
         .content {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 400px 1fr;
             gap: 25px;
         }
 
-        @media (max-width: 968px) {
+        @media (max-width: 1200px) {
             .content {
                 grid-template-columns: 1fr;
             }
@@ -171,10 +171,19 @@
             border: 4px solid #FFD700;
             border-radius: 20px;
             padding: 20px;
-            cursor: pointer;
+            cursor: grab;
             transition: all 0.3s;
             position: relative;
             background: linear-gradient(135deg, #FFF9E6, #FFFEF0);
+        }
+
+        .recette-item:active {
+            cursor: grabbing;
+        }
+
+        .recette-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
         }
 
         .recette-item:hover {
@@ -234,58 +243,68 @@
 
         .planning-grid {
             display: grid;
-            gap: 20px;
+            gap: 15px;
         }
 
         .jour-item {
             border: 4px solid #FFD700;
             border-radius: 25px;
-            padding: 20px;
+            padding: 15px;
             background: linear-gradient(135deg, #FFF9E6, #FFFEF0);
         }
 
         .jour-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .jour-header h3 {
             color: #FF6B9D;
-            font-size: 1.5em;
+            font-size: 1.3em;
         }
 
         .repas-container {
             display: grid;
-            gap: 15px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
 
         .repas-slot {
             background: white;
-            padding: 15px;
+            padding: 12px;
             border-radius: 15px;
-            border-left: 6px solid #FF6B9D;
+            border: 3px dashed #ccc;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            min-height: 80px;
+            transition: all 0.3s;
+        }
+
+        .repas-slot.drag-over {
+            border-color: #FF6B9D;
+            background: linear-gradient(135deg, #FFE5EC, #FFF0F5);
+            transform: scale(1.05);
         }
 
         .repas-slot.midi {
-            border-left-color: #FFD700;
+            border-left: 6px solid #FFD700;
         }
 
         .repas-slot.soir {
-            border-left-color: #9370DB;
+            border-left: 6px solid #9370DB;
         }
 
         .repas-label {
             font-weight: bold;
-            font-size: 1em;
+            font-size: 0.85em;
             color: #666;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            text-align: center;
         }
 
         .repas-content {
             min-height: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .repas-content.empty {
@@ -297,22 +316,24 @@
         .plat-info {
             font-weight: bold;
             color: #FF6B9D;
-            margin-bottom: 8px;
-            font-size: 1.1em;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+            text-align: center;
         }
 
         .delete-btn {
             background: linear-gradient(135deg, #FF1744, #FF5252);
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 15px;
+            padding: 6px 12px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 0.9em;
-            margin-top: 8px;
+            font-size: 0.75em;
+            margin-top: 6px;
             font-weight: bold;
             box-shadow: 0 4px 10px rgba(255, 23, 68, 0.3);
             transition: all 0.3s;
+            width: 100%;
         }
 
         .delete-btn:hover {
@@ -682,13 +703,16 @@
         <div id="view-recettes" class="view active">
             <div class="content">
                 <div class="card">
-                    <h2>📖 Bibliothèque de Recettes</h2>
+                    <h2>📖 Recettes</h2>
                     <div class="filters" id="filters"></div>
                     <div class="recette-list" id="recette-list"></div>
                 </div>
 
                 <div class="card">
-                    <h2>📅 Aperçu Planning</h2>
+                    <h2>📅 Planning de la Semaine</h2>
+                    <p style="color: #666; margin-bottom: 20px; font-size: 0.95em;">
+                        💡 <strong>Glissez-déposez</strong> une recette sur un repas ou <strong>cliquez</strong> pour voir les détails
+                    </p>
                     <div class="planning-grid" id="planning-rapide"></div>
                 </div>
             </div>
@@ -1134,7 +1158,12 @@
             }
             
             listDiv.innerHTML = recettes.map(r => `
-                <div class="recette-item ${r.perso ? 'perso' : ''}" onclick="ouvrirModal(${r.id})">
+                <div class="recette-item ${r.perso ? 'perso' : ''}" 
+                     draggable="true" 
+                     data-recette-id="${r.id}"
+                     ondragstart="dragStart(event)"
+                     ondragend="dragEnd(event)"
+                     onclick="ouvrirModal(${r.id})">
                     ${r.perso ? '<button class="delete-mini-btn" onclick="event.stopPropagation(); supprimerRecette(' + r.id + ')">×</button>' : ''}
                     <span class="badge ${r.perso ? 'perso' : ''}">${r.perso ? 'MA RECETTE' : r.cat}</span>
                     <h3>${r.nom}</h3>
@@ -1160,22 +1189,32 @@
                             <h3>${jour}</h3>
                         </div>
                         <div class="repas-container">
-                            <div class="repas-slot midi">
+                            <div class="repas-slot midi" 
+                                 data-jour="${jour}" 
+                                 data-moment="midi"
+                                 ondragover="dragOver(event)"
+                                 ondragleave="dragLeave(event)"
+                                 ondrop="drop(event)">
                                 <div class="repas-label">🌞 Midi</div>
                                 <div class="repas-content ${!midi ? 'empty' : ''}">
                                     ${midi ? `
                                         <div class="plat-info">${midi.nom}</div>
                                         <button class="delete-btn" onclick="retirerRepas('${jour}', 'midi')">Retirer</button>
-                                    ` : 'Aucun repas'}
+                                    ` : '<span style="font-size: 0.85em; color: #999;">Glissez une recette ici</span>'}
                                 </div>
                             </div>
-                            <div class="repas-slot soir">
+                            <div class="repas-slot soir" 
+                                 data-jour="${jour}" 
+                                 data-moment="soir"
+                                 ondragover="dragOver(event)"
+                                 ondragleave="dragLeave(event)"
+                                 ondrop="drop(event)">
                                 <div class="repas-label">🌙 Soir</div>
                                 <div class="repas-content ${!soir ? 'empty' : ''}">
                                     ${soir ? `
                                         <div class="plat-info">${soir.nom}</div>
                                         <button class="delete-btn" onclick="retirerRepas('${jour}', 'soir')">Retirer</button>
-                                    ` : 'Aucun repas'}
+                                    ` : '<span style="font-size: 0.85em; color: #999;">Glissez une recette ici</span>'}
                                 </div>
                             </div>
                         </div>
@@ -1481,6 +1520,43 @@
             
             if (vue === 'courses') {
                 mettreAJourCourses();
+            }
+        }
+
+        // Fonctions de glisser-déposer
+        let recetteDragee = null;
+
+        function dragStart(event) {
+            const recetteId = parseInt(event.target.dataset.recetteId);
+            recetteDragee = getToutesRecettes().find(r => r.id === recetteId);
+            event.target.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function dragEnd(event) {
+            event.target.classList.remove('dragging');
+        }
+
+        function dragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            event.currentTarget.classList.add('drag-over');
+        }
+
+        function dragLeave(event) {
+            event.currentTarget.classList.remove('drag-over');
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drag-over');
+            
+            const jour = event.currentTarget.dataset.jour;
+            const moment = event.currentTarget.dataset.moment;
+            
+            if (recetteDragee) {
+                ajouterRepas(jour, moment, recetteDragee);
+                recetteDragee = null;
             }
         }
 
