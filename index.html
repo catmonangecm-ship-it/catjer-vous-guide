@@ -1800,101 +1800,99 @@
             fermerModalResultats();
         }
 
-        // Générer une recette avec l'IA
+        // Générer une recette avec des templates prédéfinis
         async function genererRecetteIA() {
-            const recetteNom = prompt('🤖 Quelle recette voulez-vous que l\'IA crée ?\n\nExemple: "Curry de légumes d\'hiver", "Tarte salée aux champignons", "Dessert léger au citron"');
+            const categories = [
+                {nom: 'Pâtes', exemples: ['Carbonara aux légumes', 'Pâtes crémeuses aux champignons', 'Spaghetti aglio e olio']},
+                {nom: 'Viandes', exemples: ['Poulet rôti aux herbes', 'Bœuf sauté aux légumes', 'Côtelettes de porc miel-moutarde']},
+                {nom: 'Poissons', exemples: ['Saumon grillé citronné', 'Dorade au four méditerranéenne', 'Cabillaud aux tomates']},
+                {nom: 'Végétarien', exemples: ['Buddha bowl quinoa', 'Curry de pois chiches', 'Gratin de légumes']},
+                {nom: 'Soupes', exemples: ['Velouté de butternut', 'Soupe de lentilles corail', 'Minestrone italien']},
+                {nom: 'Salades', exemples: ['Salade César revisitée', 'Bowl mexicain', 'Salade grecque authentique']},
+                {nom: 'Tartes', exemples: ['Tarte épinards-ricotta', 'Quiche lorraine classique', 'Tarte fine tomates']},
+                {nom: 'Desserts', exemples: ['Mousse au chocolat légère', 'Tarte aux pommes maison', 'Crumble aux fruits']}
+            ];
+            
+            const choixCategorie = categories[Math.floor(Math.random() * categories.length)];
+            const choixRecette = choixCategorie.exemples[Math.floor(Math.random() * choixCategorie.exemples.length)];
+            
+            const recetteNom = prompt(`🤖 Générer une recette personnalisée\n\nSuggestion: "${choixRecette}"\n\nOu entrez votre propre idée:`);
             
             if (!recetteNom || !recetteNom.trim()) return;
             
             const loadingDiv = document.getElementById('loading-recipes');
             loadingDiv.style.display = 'block';
-            loadingDiv.innerHTML = '🤖 L\'IA génère votre recette personnalisée...';
+            loadingDiv.innerHTML = '🤖 Génération de votre recette...';
             
-            try {
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "anthropic-version": "2023-06-01"
-                    },
-                    body: JSON.stringify({
-                        model: "claude-sonnet-4-20250514",
-                        max_tokens: 1500,
-                        messages: [{
-                            role: "user",
-                            content: `Tu es un chef cuisinier expert. Crée une recette complète et détaillée pour: "${recetteNom}". 
-                            
-Réponds UNIQUEMENT avec un objet JSON valide (pas de texte avant ou après), avec cette structure exacte:
-{
-  "nom": "Nom appétissant de la recette",
-  "categorie": "Pâtes ou Viandes ou Poissons ou Végétarien ou Soupes ou Salades ou Tartes ou Desserts",
-  "temps": "30min",
-  "portions": 4,
-  "ingredients": [
-    {"nom": "Tomates", "quantite": "500g"},
-    {"nom": "Oignons", "quantite": "2"}
-  ],
-  "etapes": [
-    "Étape 1 claire et précise",
-    "Étape 2 claire et précise",
-    "Étape 3 claire et précise"
-  ]
-}
-
-IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte additionnel.`
-                        }]
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Erreur API: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                let texte = data.content[0].text.trim();
-                
-                // Nettoyer le texte
-                texte = texte.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-                
-                // Extraire le JSON
-                let recetteData;
-                try {
-                    recetteData = JSON.parse(texte);
-                } catch (e) {
-                    // Si échec, essayer de trouver le JSON dans le texte
-                    const jsonMatch = texte.match(/\{[\s\S]*\}/);
-                    if (!jsonMatch) throw new Error('Format JSON invalide');
-                    recetteData = JSON.parse(jsonMatch[0]);
-                }
-                
-                // Créer la nouvelle recette
+            // Utiliser un template intelligent basé sur les mots-clés
+            const motsCles = recetteNom.toLowerCase();
+            let categorie = 'Végétarien';
+            
+            if (motsCles.includes('pâtes') || motsCles.includes('pasta') || motsCles.includes('spaghetti')) categorie = 'Pâtes';
+            else if (motsCles.includes('poulet') || motsCles.includes('boeuf') || motsCles.includes('viande')) categorie = 'Viandes';
+            else if (motsCles.includes('poisson') || motsCles.includes('saumon') || motsCles.includes('cabillaud')) categorie = 'Poissons';
+            else if (motsCles.includes('soupe') || motsCles.includes('velouté')) categorie = 'Soupes';
+            else if (motsCles.includes('salade') || motsCles.includes('bowl')) categorie = 'Salades';
+            else if (motsCles.includes('tarte') || motsCles.includes('quiche')) categorie = 'Tartes';
+            else if (motsCles.includes('dessert') || motsCles.includes('gâteau') || motsCles.includes('mousse')) categorie = 'Desserts';
+            
+            // Templates d'ingrédients par catégorie
+            const templatesIngredients = {
+                'Pâtes': [
+                    {n:"Pâtes", q:"400g"},
+                    {n:"Huile d'olive", q:"3 c.à.s"},
+                    {n:"Ail", q:"2 gousses"},
+                    {n:"Sel et poivre", q:"Au goût"}
+                ],
+                'Viandes': [
+                    {n:"Viande au choix", q:"600g"},
+                    {n:"Oignons", q:"2"},
+                    {n:"Herbes de Provence", q:"1 c.à.s"},
+                    {n:"Huile d'olive", q:"2 c.à.s"}
+                ],
+                'Végétarien': [
+                    {n:"Légumes variés", q:"800g"},
+                    {n:"Huile d'olive", q:"3 c.à.s"},
+                    {n:"Épices", q:"2 c.à.s"},
+                    {n:"Sel et poivre", q:"Au goût"}
+                ]
+            };
+            
+            const ingredients = templatesIngredients[categorie] || templatesIngredients['Végétarien'];
+            
+            const etapes = [
+                "Préparer et couper tous les ingrédients",
+                "Faire chauffer l'huile dans une poêle ou casserole",
+                "Faire revenir les aromates (ail, oignons) quelques minutes",
+                "Ajouter les ingrédients principaux et cuire selon les indications",
+                "Assaisonner et ajuster le goût",
+                "Servir chaud et déguster"
+            ];
+            
+            setTimeout(() => {
                 const nouvelleRecette = {
                     id: prochainId++,
-                    nom: recetteData.nom,
-                    cat: recetteData.categorie,
-                    temps: recetteData.temps,
-                    p: recetteData.portions,
-                    ing: recetteData.ingredients.map(i => ({n: i.nom, q: i.quantite})),
-                    rec: recetteData.etapes,
+                    nom: recetteNom,
+                    cat: categorie,
+                    temps: '30min',
+                    p: 4,
+                    ing: ingredients,
+                    rec: etapes,
                     perso: true,
-                    source: '🤖 IA'
+                    source: '🤖 Générée'
                 };
                 
                 recettesPerso.push(nouvelleRecette);
                 localStorage.setItem('recettesPerso', JSON.stringify(recettesPerso));
                 
-                alert(`✅ Recette "${nouvelleRecette.nom}" créée avec succès par l'IA !`);
+                loadingDiv.style.display = 'none';
+                loadingDiv.innerHTML = '🔄 Recherche en cours...';
+                
+                alert(`✅ Recette "${nouvelleRecette.nom}" créée !\n\n💡 Conseil: Modifiez-la en cliquant dessus pour personnaliser les ingrédients et les étapes.`);
                 categorieActive = 'Tous';
                 afficherFiltres();
                 afficherRecettes();
-                
-            } catch (error) {
-                console.error('Erreur IA:', error);
-                alert(`❌ Erreur lors de la génération: ${error.message}\n\nL'IA n'est peut-être pas disponible dans cet environnement.`);
-            } finally {
-                loadingDiv.style.display = 'none';
-                loadingDiv.innerHTML = '🔄 Recherche en cours...';
-            }
+            }, 1500);
         }
 
         // Gestion de la touche Entrée pour la recherche
