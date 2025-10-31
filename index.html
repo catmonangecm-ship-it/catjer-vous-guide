@@ -893,6 +893,7 @@
             <button class="nav-btn" onclick="changerVue('planning')">📅 Planning</button>
             <button class="nav-btn" onclick="changerVue('courses')">🛒 Courses<span id="courses-badge"></span></button>
             <button class="nav-btn" onclick="ouvrirModalNouvelleRecette()">➕ Nouvelle Recette</button>
+            <button class="nav-btn" onclick="ouvrirModalIA()">🤖 Inventer avec IA</button>
         </div>
 
         <!-- VUE RECETTES -->
@@ -901,24 +902,13 @@
                 <div class="card">
                     <h2>📖 Recettes</h2>
                     
-                    <!-- Barre de recherche -->
-                    <div class="search-bar">
-                        <input type="text" 
-                               class="search-input" 
-                               id="search-input" 
-                               placeholder="🔍 Rechercher (ex: chicken, beef, pasta, salmon, cake, pizza...)">
-                        <button class="search-btn" onclick="rechercherRecettesAPI()" id="search-btn">
-                            Rechercher
-                        </button>
-                    </div>
-                    
-                    <p style="color: #666; font-size: 0.85em; margin-bottom: 15px;">
-                        💡 <strong>Astuce :</strong> Recherchez en anglais pour plus de résultats (ex: "chicken curry", "chocolate cake", "vegetarian pasta")
+                    <p style="color: #666; font-size: 0.85em; margin-bottom: 15px; padding: 15px; background: linear-gradient(135deg, #E3F2FD, #BBDEFB); border-radius: 15px; border: 2px solid #2196F3;">
+                        💡 <strong>Astuce :</strong> Pour ajouter plus de recettes, utilisez le bouton <strong>"➕ Nouvelle Recette"</strong> ci-dessus pour créer vos propres recettes personnalisées !
                     </p>
                     
                     <div class="filters" id="filters"></div>
                     <div id="loading-recipes" class="loading" style="display:none;">
-                        🔄 Recherche en cours...
+                        🔄 Chargement...
                     </div>
                     <div class="recette-list" id="recette-list"></div>
                 </div>
@@ -1078,6 +1068,71 @@
                 <h2 id="titre-resultats">📚 Résultats de recherche</h2>
             </div>
             <div class="modal-body modal-results" id="contenu-resultats">
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GÉNÉRATION IA -->
+    <div id="modal-ia" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="fermerModalIA()">×</button>
+                <h2>🤖 Inventer une Recette avec l'IA</h2>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: #666; line-height: 1.6;">
+                    L'IA va inventer une recette <strong>unique et originale</strong> basée sur vos envies !
+                </p>
+                
+                <div class="form-group">
+                    <label>🍽️ Type de plat souhaité *</label>
+                    <select id="ia-type" style="width: 100%; padding: 15px; border: 3px solid #FFD700; border-radius: 15px; font-size: 1em;">
+                        <option value="">Surprise moi !</option>
+                        <option value="entrée">Entrée</option>
+                        <option value="plat principal">Plat principal</option>
+                        <option value="accompagnement">Accompagnement</option>
+                        <option value="dessert">Dessert</option>
+                        <option value="goûter">Goûter</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>🥗 Ingrédient principal (optionnel)</label>
+                    <input type="text" id="ia-ingredient" placeholder="Ex: poulet, saumon, chocolat, légumes..." style="width: 100%; padding: 15px; border: 3px solid #FFD700; border-radius: 15px; font-size: 1em;">
+                </div>
+
+                <div class="form-group">
+                    <label>🌍 Style de cuisine (optionnel)</label>
+                    <select id="ia-style" style="width: 100%; padding: 15px; border: 3px solid #FFD700; border-radius: 15px; font-size: 1em;">
+                        <option value="">Peu importe</option>
+                        <option value="française">Française</option>
+                        <option value="italienne">Italienne</option>
+                        <option value="asiatique">Asiatique</option>
+                        <option value="méditerranéenne">Méditerranéenne</option>
+                        <option value="mexicaine">Mexicaine</option>
+                        <option value="végétarienne">Végétarienne</option>
+                        <option value="healthy">Healthy</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>⏱️ Temps de préparation souhaité</label>
+                    <select id="ia-temps" style="width: 100%; padding: 15px; border: 3px solid #FFD700; border-radius: 15px; font-size: 1em;">
+                        <option value="">Peu importe</option>
+                        <option value="moins de 20 minutes">Rapide (moins de 20 min)</option>
+                        <option value="20-40 minutes">Moyen (20-40 min)</option>
+                        <option value="plus de 40 minutes">Long (plus de 40 min)</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" onclick="genererRecetteIA()">
+                    ✨ Inventer ma recette !
+                </button>
+
+                <div id="ia-loading" style="display: none; text-align: center; margin-top: 20px; color: #FF6B9D; font-weight: bold;">
+                    🤖 L'IA invente votre recette originale...<br>
+                    <small style="color: #999;">Cela peut prendre 10-15 secondes</small>
+                </div>
             </div>
         </div>
     </div>
@@ -2141,6 +2196,7 @@
             if (event.target.id === 'modal') fermerModal();
             if (event.target.id === 'modal-nouvelle-recette') fermerModalNouvelleRecette();
             if (event.target.id === 'modal-resultats') fermerModalResultats();
+            if (event.target.id === 'modal-ia') fermerModalIA();
         }
 
         init();
