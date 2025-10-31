@@ -1,5 +1,827 @@
-const recettesPredefinies = [
-            // PÂTES
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificateur de Repas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Segoe UI', sans-serif;
+            background: linear-gradient(45deg, #FF6B9D, #C06C84, #6C5B7B, #355C7D);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: bounceIn 0.6s ease;
+            border: 5px solid #FF6B9D;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .header h1 {
+            background: linear-gradient(45deg, #FF6B9D, #FFA07A, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: white;
+            border: 4px solid #FF6B9D;
+            padding: 18px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 8px 20px rgba(255, 107, 157, 0.3);
+            color: #FF6B9D;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-5px) rotate(2deg);
+            box-shadow: 0 12px 30px rgba(255, 107, 157, 0.5);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            color: white;
+            border-color: white;
+            transform: scale(1.1);
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s ease;
+            border: 5px solid #FFD700;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card h2 {
+            background: linear-gradient(45deg, #FF6B9D, #FFA07A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .filter-btn {
+            background: linear-gradient(135deg, #FFE5EC, #FFF0F5);
+            border: 3px solid #FF6B9D;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            color: #FF6B9D;
+        }
+
+        .filter-btn:hover {
+            transform: scale(1.1) rotate(-2deg);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            color: white;
+            border-color: white;
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.5);
+        }
+
+        .recette-list {
+            max-height: 600px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .recette-item {
+            border: 4px solid #FFD700;
+            border-radius: 20px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: linear-gradient(135deg, #FFF9E6, #FFFEF0);
+        }
+
+        .recette-item:hover {
+            border-color: #FF6B9D;
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4);
+            transform: translateX(10px) rotate(1deg);
+        }
+
+        .recette-item.perso {
+            border-color: #00CED1;
+            background: linear-gradient(135deg, #E0FFFF, #F0FFFF);
+        }
+
+        .recette-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-right: 10px;
+            box-shadow: 0 4px 10px rgba(255, 107, 157, 0.3);
+        }
+
+        .badge.perso {
+            background: linear-gradient(135deg, #00CED1, #20B2AA);
+        }
+
+        .delete-mini-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #FF1744, #FF5252);
+            color: white;
+            border: 3px solid white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(255, 23, 68, 0.4);
+            transition: all 0.3s;
+        }
+
+        .delete-mini-btn:hover {
+            transform: rotate(90deg) scale(1.2);
+        }
+
+        .planning-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .jour-item {
+            border: 4px solid #FFD700;
+            border-radius: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, #FFF9E6, #FFFEF0);
+        }
+
+        .jour-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .jour-header h3 {
+            color: #FF6B9D;
+            font-size: 1.5em;
+        }
+
+        .repas-container {
+            display: grid;
+            gap: 15px;
+        }
+
+        .repas-slot {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 6px solid #FF6B9D;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .repas-slot.midi {
+            border-left-color: #FFD700;
+        }
+
+        .repas-slot.soir {
+            border-left-color: #9370DB;
+        }
+
+        .repas-label {
+            font-weight: bold;
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .repas-content {
+            min-height: 40px;
+        }
+
+        .repas-content.empty {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .plat-info {
+            font-weight: bold;
+            color: #FF6B9D;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #FF1744, #FF5252);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(255, 23, 68, 0.3);
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .liste-courses {
+            display: grid;
+            gap: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .ingredient-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: linear-gradient(135deg, #FFE5EC, #FFF0F5);
+            border-radius: 15px;
+            font-weight: 500;
+            border: 3px solid #FF6B9D;
+            transition: all 0.3s;
+        }
+
+        .ingredient-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.3);
+        }
+
+        .supermarche-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .supermarche-btn {
+            padding: 25px;
+            border: 4px solid white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: white;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .supermarche-btn:hover {
+            transform: translateY(-8px) rotate(-2deg);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        .carrefour { background: linear-gradient(135deg, #0055a5, #003d7a); }
+        .auchan { background: linear-gradient(135deg, #ed1c24, #b71c1c); }
+        .leclerc { background: linear-gradient(135deg, #00a651, #007c3d); }
+        .intermarche { background: linear-gradient(135deg, #ff6b35, #f74902); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 30px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 6px solid #FF6B9D;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+            to { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            color: white;
+            padding: 35px;
+            border-radius: 24px 24px 0 0;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: none;
+            color: #FF6B9D;
+            font-size: 28px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg) scale(1.2);
+        }
+
+        .modal-body {
+            padding: 35px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #FF6B9D;
+            font-size: 1.1em;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #FF6B9D;
+            box-shadow: 0 0 15px rgba(255, 107, 157, 0.3);
+        }
+
+        .ingredient-inputs {
+            display: grid;
+            gap: 12px;
+        }
+
+        .ingredient-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            color: white;
+            border: 4px solid white;
+            padding: 18px 35px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 25px;
+            box-shadow: 0 8px 20px rgba(255, 107, 157, 0.4);
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(255, 107, 157, 0.6);
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #00CED1, #20B2AA);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.3em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-add:hover {
+            transform: scale(1.2) rotate(90deg);
+        }
+
+        .btn-remove {
+            background: linear-gradient(135deg, #FF1744, #FF5252);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-remove:hover {
+            transform: scale(1.2);
+        }
+
+        .repas-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .repas-btn {
+            padding: 15px;
+            border: 3px solid #FFD700;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .repas-btn:hover {
+            border-color: #FF6B9D;
+            transform: scale(1.05);
+        }
+
+        .repas-btn.selected {
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            color: white;
+            border-color: white;
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+        }
+
+        .etapes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .etape-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .etape-number {
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(255, 107, 157, 0.3);
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #FFE5EC;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #FF6B9D, #FFA07A);
+            border-radius: 10px;
+        }
+
+        .courses-badge {
+            background: linear-gradient(135deg, #FF1744, #FF5252);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #9370DB, #6A5ACD);
+            color: white;
+            border: 4px solid white;
+            padding: 18px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 25px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(147, 112, 219, 0.4);
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(147, 112, 219, 0.6);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 100px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍳 Planificateur de Repas</h1>
+            <p>Organisez vos repas de la semaine facilement !</p>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="changerVue('recettes')">📚 Recettes</button>
+            <button class="nav-btn" onclick="changerVue('planning')">📅 Planning</button>
+            <button class="nav-btn" onclick="changerVue('courses')">🛒 Courses<span id="courses-badge"></span></button>
+            <button class="nav-btn" onclick="ouvrirModalNouvelleRecette()">➕ Nouvelle Recette</button>
+        </div>
+
+        <!-- VUE RECETTES -->
+        <div id="view-recettes" class="view active">
+            <div class="content">
+                <div class="card">
+                    <h2>📖 Bibliothèque de Recettes</h2>
+                    <div class="filters" id="filters"></div>
+                    <div class="recette-list" id="recette-list"></div>
+                </div>
+
+                <div class="card">
+                    <h2>📅 Aperçu Planning</h2>
+                    <div class="planning-grid" id="planning-rapide"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VUE PLANNING -->
+        <div id="view-planning" class="view">
+            <div class="card">
+                <h2>📅 Planning Hebdomadaire</h2>
+                <div class="planning-grid" id="planning-complet"></div>
+            </div>
+        </div>
+
+        <!-- VUE COURSES -->
+        <div id="view-courses" class="view">
+            <div class="card">
+                <h2>🛒 Ma Liste de Courses</h2>
+                <div id="courses-content"></div>
+            </div>
+            
+            <div class="card" id="supermarches-section" style="display:none; margin-top: 25px;">
+                <h2>🏪 Commander en Ligne</h2>
+                <p style="margin-bottom: 25px; color: #666; font-size: 1.1em;">Envoyez votre liste directement à votre supermarché</p>
+                <div class="supermarche-grid">
+                    <button class="supermarche-btn carrefour" onclick="envoyerSupermarche('Carrefour', 'https://www.carrefour.fr')">
+                        🛒 Carrefour
+                    </button>
+                    <button class="supermarche-btn auchan" onclick="envoyerSupermarche('Auchan', 'https://www.auchan.fr')">
+                        🏪 Auchan
+                    </button>
+                    <button class="supermarche-btn leclerc" onclick="envoyerSupermarche('Leclerc', 'https://www.e.leclerc')">
+                        🛍️ Leclerc
+                    </button>
+                    <button class="supermarche-btn intermarche" onclick="envoyerSupermarche('Intermarché', 'https://www.intermarche.com')">
+                        🏬 Intermarché
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DÉTAIL RECETTE -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="fermerModal()">×</button>
+                <h2 id="modal-titre" style="margin-bottom: 10px;"></h2>
+                <div id="modal-info"></div>
+            </div>
+            <div class="modal-body">
+                <h3 style="color: #FF6B9D; margin-bottom: 20px; font-size: 1.5em;">🛒 Ingrédients</h3>
+                <div id="modal-ingredients" style="display: grid; gap: 10px; margin-bottom: 30px;"></div>
+                
+                <h3 style="color: #FF6B9D; margin: 30px 0 20px; font-size: 1.5em;">👨‍🍳 Préparation</h3>
+                <div id="modal-preparation"></div>
+                
+                <h3 style="color: #FF6B9D; margin: 30px 0 20px; font-size: 1.5em;">📅 Ajouter au planning</h3>
+                <div class="repas-selector" id="modal-repas"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOUVELLE RECETTE -->
+    <div id="modal-nouvelle-recette" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="fermerModalNouvelleRecette()">×</button>
+                <h2>➕ Créer une Nouvelle Recette</h2>
+            </div>
+            <div class="modal-body">
+                <form id="form-nouvelle-recette" onsubmit="sauvegarderNouvelleRecette(event)">
+                    <div class="form-group">
+                        <label>Nom de la recette *</label>
+                        <input type="text" id="nom-recette" required placeholder="Ex: Poulet curry">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Catégorie *</label>
+                        <select id="categorie-recette" required>
+                            <option value="">Choisir...</option>
+                            <option value="Pâtes">Pâtes</option>
+                            <option value="Viandes">Viandes</option>
+                            <option value="Poissons">Poissons</option>
+                            <option value="Végétarien">Végétarien</option>
+                            <option value="Soupes">Soupes</option>
+                            <option value="Salades">Salades</option>
+                            <option value="Tartes">Tartes</option>
+                            <option value="Desserts">Desserts</option>
+                            <option value="Diabétique">Diabétique</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Temps de préparation</label>
+                        <input type="text" id="temps-recette" placeholder="Ex: 30min">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nombre de portions</label>
+                        <input type="number" id="portions-recette" value="4" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ingrédients *</label>
+                        <div class="ingredient-inputs" id="ingredients-inputs">
+                            <div class="ingredient-row">
+                                <input type="text" placeholder="Nom ingrédient" class="ing-nom" required>
+                                <input type="text" placeholder="Quantité" class="ing-qte" required>
+                                <button type="button" class="btn-add" onclick="ajouterIngredient()">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Étapes de préparation *</label>
+                        <div class="etapes-list" id="etapes-list">
+                            <div class="etape-row">
+                                <div class="etape-number">1</div>
+                                <textarea rows="3" class="etape-text" required placeholder="Décrivez l'étape 1..."></textarea>
+                                <button type="button" class="btn-add" onclick="ajouterEtape()">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">💾 Sauvegarder la Recette</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const recettesPredefinies = [
+            // PÂTES (6 recettes)
             { id: 1, nom: "Pâtes Carbonara", cat: "Pâtes", temps: "20min", p: 4, perso: false,
                 ing: [{n:"Spaghetti",q:"400g"}, {n:"Lardons",q:"200g"}, {n:"Œufs",q:"4"}, {n:"Parmesan",q:"100g"}, {n:"Crème",q:"20cl"}],
                 rec: ["Cuire les pâtes al dente.", "Faire revenir les lardons.", "Mélanger œufs, crème et parmesan.", "Ajouter aux pâtes hors du feu.", "Poivrer généreusement."]
@@ -8,236 +830,666 @@ const recettesPredefinies = [
                 ing: [{n:"Pâtes",q:"400g"}, {n:"Viande hachée",q:"500g"}, {n:"Tomates",q:"800g"}, {n:"Oignons",q:"2"}, {n:"Ail",q:"3 gousses"}],
                 rec: ["Faire revenir oignons et ail.", "Ajouter la viande et dorer.", "Ajouter tomates et herbes.", "Mijoter 30min.", "Servir sur pâtes."]
             },
-            { id: 9, nom: "Lasagnes", cat: "Pâtes", temps: "1h30", p: 6, perso: false,
+            { id: 3, nom: "Lasagnes", cat: "Pâtes", temps: "1h30", p: 6, perso: false,
                 ing: [{n:"Plaques lasagnes",q:"12"}, {n:"Viande hachée",q:"600g"}, {n:"Béchamel",q:"50cl"}, {n:"Mozzarella",q:"200g"}],
                 rec: ["Préparer bolognaise.", "Alterner pâtes, bolognaise, béchamel.", "Terminer par fromages.", "Four 180°C 40min."]
             },
-            { id: 13, nom: "Pâtes aux Fruits de Mer", cat: "Pâtes", temps: "30min", p: 4, perso: false,
+            { id: 4, nom: "Pâtes aux Fruits de Mer", cat: "Pâtes", temps: "30min", p: 4, perso: false,
                 ing: [{n:"Linguine",q:"400g"}, {n:"Fruits de mer",q:"500g"}, {n:"Ail",q:"4 gousses"}, {n:"Vin blanc",q:"15cl"}, {n:"Persil",q:"1 bouquet"}],
                 rec: ["Cuire les pâtes.", "Faire revenir ail dans huile d'olive.", "Ajouter fruits de mer et vin blanc.", "Mélanger avec pâtes et persil.", "Servir immédiatement."]
             },
-            { id: 14, nom: "Pâtes Pesto", cat: "Pâtes", temps: "15min", p: 4, perso: false,
+            { id: 5, nom: "Pâtes Pesto", cat: "Pâtes", temps: "15min", p: 4, perso: false,
                 ing: [{n:"Pâtes courtes",q:"400g"}, {n:"Pesto",q:"150g"}, {n:"Tomates cerises",q:"250g"}, {n:"Parmesan",q:"80g"}, {n:"Pignons",q:"50g"}],
                 rec: ["Cuire les pâtes.", "Griller les pignons.", "Mélanger pâtes chaudes avec pesto.", "Ajouter tomates coupées.", "Parsemer de parmesan et pignons."]
             },
-            { id: 15, nom: "Pâtes à la Crème de Champignons", cat: "Pâtes", temps: "25min", p: 4, perso: false,
+            { id: 6, nom: "Pâtes Crème Champignons", cat: "Pâtes", temps: "25min", p: 4, perso: false,
                 ing: [{n:"Tagliatelles",q:"400g"}, {n:"Champignons",q:"500g"}, {n:"Crème fraîche",q:"30cl"}, {n:"Échalotes",q:"3"}, {n:"Persil",q:"1 bouquet"}],
                 rec: ["Cuire les pâtes.", "Faire revenir échalotes et champignons.", "Ajouter crème et laisser réduire.", "Mélanger avec pâtes.", "Parsemer de persil."]
             },
             
-            // VIANDES
-            { id: 3, nom: "Poulet Rôti", cat: "Viandes", temps: "1h30", p: 4, perso: false,
+            // VIANDES (6 recettes)
+            { id: 7, nom: "Poulet Rôti", cat: "Viandes", temps: "1h30", p: 4, perso: false,
                 ing: [{n:"Poulet",q:"1.5kg"}, {n:"Pommes de terre",q:"800g"}, {n:"Carottes",q:"500g"}, {n:"Herbes",q:"2 c.à.s"}],
                 rec: ["Préchauffer four 200°C.", "Assaisonner le poulet.", "Disposer légumes autour.", "Enfourner 1h30.", "Arroser régulièrement."]
             },
-            { id: 16, nom: "Poulet Curry", cat: "Viandes", temps: "35min", p: 4, perso: false,
+            { id: 8, nom: "Poulet Curry", cat: "Viandes", temps: "35min", p: 4, perso: false,
                 ing: [{n:"Blancs de poulet",q:"4"}, {n:"Curry",q:"3 c.à.s"}, {n:"Lait coco",q:"40cl"}, {n:"Oignons",q:"2"}, {n:"Riz",q:"300g"}],
                 rec: ["Couper poulet en morceaux.", "Faire revenir avec oignons.", "Ajouter curry et lait coco.", "Mijoter 20min.", "Servir avec riz."]
             },
-            { id: 17, nom: "Bœuf Bourguignon", cat: "Viandes", temps: "2h30", p: 6, perso: false,
+            { id: 9, nom: "Bœuf Bourguignon", cat: "Viandes", temps: "2h30", p: 6, perso: false,
                 ing: [{n:"Bœuf",q:"1kg"}, {n:"Vin rouge",q:"75cl"}, {n:"Carottes",q:"4"}, {n:"Oignons",q:"3"}, {n:"Lardons",q:"200g"}],
-                rec: ["Faire dorer la viande.", "Ajouter légumes et lardons.", "Mouiller au vin rouge.", "Mijoter 2h à feu doux.", "Servir avec pâtes ou pommes de terre."]
+                rec: ["Faire dorer la viande.", "Ajouter légumes et lardons.", "Mouiller au vin rouge.", "Mijoter 2h à feu doux.", "Servir avec pâtes."]
             },
-            { id: 18, nom: "Escalope Milanaise", cat: "Viandes", temps: "25min", p: 4, perso: false,
+            { id: 10, nom: "Escalope Milanaise", cat: "Viandes", temps: "25min", p: 4, perso: false,
                 ing: [{n:"Escalopes veau",q:"4"}, {n:"Chapelure",q:"150g"}, {n:"Œufs",q:"2"}, {n:"Parmesan",q:"50g"}, {n:"Citron",q:"2"}],
-                rec: ["Aplatir les escalopes.", "Paner avec œuf puis chapelure-parmesan.", "Faire frire 3min par côté.", "Servir avec quartiers de citron.", "Accompagner de salade ou spaghetti."]
+                rec: ["Aplatir les escalopes.", "Paner avec œuf puis chapelure-parmesan.", "Faire frire 3min par côté.", "Servir avec citron.", "Accompagner de salade."]
             },
-            { id: 19, nom: "Côtes d'Agneau Grillées", cat: "Viandes", temps: "20min", p: 4, perso: false,
+            { id: 11, nom: "Côtes Agneau Grillées", cat: "Viandes", temps: "20min", p: 4, perso: false,
                 ing: [{n:"Côtes d'agneau",q:"8"}, {n:"Romarin",q:"3 branches"}, {n:"Ail",q:"4 gousses"}, {n:"Huile olive",q:"4 c.à.s"}],
-                rec: ["Mariner agneau avec ail et romarin 1h.", "Préchauffer grill.", "Griller 3-4min par côté.", "Laisser reposer 5min.", "Servir avec légumes grillés."]
+                rec: ["Mariner agneau 1h.", "Préchauffer grill.", "Griller 3-4min par côté.", "Laisser reposer 5min.", "Servir avec légumes."]
             },
-            { id: 20, nom: "Blanquette de Veau", cat: "Viandes", temps: "2h", p: 6, perso: false,
+            { id: 12, nom: "Blanquette de Veau", cat: "Viandes", temps: "2h", p: 6, perso: false,
                 ing: [{n:"Veau",q:"1kg"}, {n:"Carottes",q:"3"}, {n:"Champignons",q:"300g"}, {n:"Crème",q:"20cl"}, {n:"Citron",q:"1"}],
-                rec: ["Cuire veau dans bouillon 1h30.", "Ajouter carottes et champignons.", "Lier sauce avec crème et jaune d'œuf.", "Ajouter jus de citron.", "Servir avec riz."]
+                rec: ["Cuire veau dans bouillon 1h30.", "Ajouter carottes et champignons.", "Lier sauce avec crème.", "Ajouter jus de citron.", "Servir avec riz."]
             },
             
-            // POISSONS
-            { id: 4, nom: "Saumon Grillé", cat: "Poissons", temps: "20min", p: 4, perso: false,
+            // POISSONS (4 recettes)
+            { id: 13, nom: "Saumon Grillé", cat: "Poissons", temps: "20min", p: 4, perso: false,
                 ing: [{n:"Filets saumon",q:"4"}, {n:"Citron",q:"2"}, {n:"Aneth",q:"1 bouquet"}, {n:"Beurre",q:"50g"}],
-                rec: ["Cuire saumon 4min côté peau.", "Retourner 3min.", "Ajouter beurre citronné.", "Parsemer d'aneth."]
+                rec: ["Cuire saumon 4min côté peau.", "Retourner 3min.", "Ajouter beurre citronné.", "Parsemer d'aneth.", "Servir avec légumes."]
             },
-            { id: 21, nom: "Cabillaud au Four", cat: "Poissons", temps: "30min", p: 4, perso: false,
+            { id: 14, nom: "Cabillaud au Four", cat: "Poissons", temps: "30min", p: 4, perso: false,
                 ing: [{n:"Filets cabillaud",q:"4"}, {n:"Tomates",q:"4"}, {n:"Olives",q:"100g"}, {n:"Basilic",q:"1 bouquet"}, {n:"Ail",q:"3 gousses"}],
-                rec: ["Disposer poisson dans plat.", "Ajouter tomates coupées, olives, ail.", "Arroser d'huile d'olive.", "Four 180°C 25min.", "Parsemer de basilic."]
+                rec: ["Disposer poisson dans plat.", "Ajouter tomates, olives, ail.", "Arroser d'huile d'olive.", "Four 180°C 25min.", "Parsemer de basilic."]
             },
-            { id: 22, nom: "Sole Meunière", cat: "Poissons", temps: "15min", p: 4, perso: false,
+            { id: 15, nom: "Sole Meunière", cat: "Poissons", temps: "15min", p: 4, perso: false,
                 ing: [{n:"Soles",q:"4"}, {n:"Farine",q:"100g"}, {n:"Beurre",q:"100g"}, {n:"Citron",q:"2"}, {n:"Persil",q:"1 bouquet"}],
                 rec: ["Fariner les soles.", "Cuire au beurre 3min par côté.", "Faire mousser le beurre.", "Ajouter jus de citron.", "Parsemer de persil."]
             },
-            { id: 23, nom: "Dorade Sauce Vierge", cat: "Poissons", temps: "25min", p: 4, perso: false,
+            { id: 16, nom: "Dorade Sauce Vierge", cat: "Poissons", temps: "25min", p: 4, perso: false,
                 ing: [{n:"Filets dorade",q:"4"}, {n:"Tomates",q:"4"}, {n:"Basilic",q:"1 bouquet"}, {n:"Huile olive",q:"10cl"}, {n:"Citron",q:"1"}],
-                rec: ["Griller les filets de dorade.", "Concasser tomates avec basilic.", "Mélanger avec huile d'olive et citron.", "Verser sauce sur poisson.", "Servir tiède."]
+                rec: ["Griller les filets.", "Concasser tomates avec basilic.", "Mélanger avec huile et citron.", "Verser sauce sur poisson.", "Servir tiède."]
             },
             
-            // VÉGÉTARIEN
-            { id: 6, nom: "Curry de Légumes", cat: "Végétarien", temps: "40min", p: 4, perso: false,
+            // VÉGÉTARIEN (5 recettes)
+            { id: 17, nom: "Curry de Légumes", cat: "Végétarien", temps: "40min", p: 4, perso: false,
                 ing: [{n:"Lait coco",q:"40cl"}, {n:"Curry",q:"3 c.à.s"}, {n:"Patates douces",q:"400g"}, {n:"Pois chiches",q:"1 boîte"}],
-                rec: ["Revenir curry dans huile.", "Ajouter patates douces.", "Ajouter lait coco et mijoter 20min.", "Ajouter pois chiches."]
+                rec: ["Revenir curry dans huile.", "Ajouter patates douces.", "Ajouter lait coco et mijoter 20min.", "Ajouter pois chiches.", "Servir avec riz."]
             },
-            { id: 10, nom: "Ratatouille", cat: "Végétarien", temps: "1h", p: 6, perso: false,
+            { id: 18, nom: "Ratatouille", cat: "Végétarien", temps: "1h", p: 6, perso: false,
                 ing: [{n:"Aubergines",q:"2"}, {n:"Courgettes",q:"3"}, {n:"Poivrons",q:"2"}, {n:"Tomates",q:"6"}],
-                rec: ["Couper légumes en dés.", "Revenir un par un.", "Ajouter tomates et herbes.", "Mijoter 45min."]
+                rec: ["Couper légumes en dés.", "Revenir un par un.", "Ajouter tomates et herbes.", "Mijoter 45min.", "Servir chaud ou froid."]
             },
-            { id: 24, nom: "Gratin Dauphinois", cat: "Végétarien", temps: "1h15", p: 6, perso: false,
+            { id: 19, nom: "Gratin Dauphinois", cat: "Végétarien", temps: "1h15", p: 6, perso: false,
                 ing: [{n:"Pommes de terre",q:"1.5kg"}, {n:"Crème",q:"50cl"}, {n:"Lait",q:"25cl"}, {n:"Ail",q:"2 gousses"}, {n:"Gruyère",q:"100g"}],
-                rec: ["Trancher finement pommes de terre.", "Frotter plat avec ail.", "Alterner couches de pommes de terre et crème.", "Parsemer de fromage.", "Four 180°C 1h."]
+                rec: ["Trancher pommes de terre.", "Frotter plat avec ail.", "Alterner couches crème.", "Parsemer de fromage.", "Four 180°C 1h."]
             },
-            { id: 25, nom: "Buddha Bowl", cat: "Végétarien", temps: "30min", p: 4, perso: false,
+            { id: 20, nom: "Buddha Bowl", cat: "Végétarien", temps: "30min", p: 4, perso: false,
                 ing: [{n:"Quinoa",q:"300g"}, {n:"Pois chiches",q:"400g"}, {n:"Avocat",q:"2"}, {n:"Chou rouge",q:"200g"}, {n:"Graines",q:"50g"}],
-                rec: ["Cuire le quinoa.", "Rôtir pois chiches au four.", "Émincer chou rouge.", "Disposer tous ingrédients en cercle.", "Ajouter sauce tahini."]
+                rec: ["Cuire le quinoa.", "Rôtir pois chiches.", "Émincer chou rouge.", "Disposer en cercle.", "Ajouter sauce tahini."]
             },
-            { id: 26, nom: "Couscous Végétarien", cat: "Végétarien", temps: "50min", p: 6, perso: false,
+            { id: 21, nom: "Couscous Végétarien", cat: "Végétarien", temps: "50min", p: 6, perso: false,
                 ing: [{n:"Semoule",q:"500g"}, {n:"Courgettes",q:"3"}, {n:"Carottes",q:"4"}, {n:"Pois chiches",q:"400g"}, {n:"Épices",q:"3 c.à.s"}],
-                rec: ["Faire revenir légumes avec épices.", "Ajouter pois chiches et bouillon.", "Mijoter 30min.", "Préparer semoule à la vapeur.", "Servir ensemble."]
+                rec: ["Faire revenir légumes avec épices.", "Ajouter pois chiches et bouillon.", "Mijoter 30min.", "Préparer semoule.", "Servir ensemble."]
             },
             
-            // SOUPES
-            { id: 8, nom: "Soupe à l'Oignon", cat: "Soupes", temps: "1h", p: 4, perso: false,
+            // SOUPES (4 recettes)
+            { id: 22, nom: "Soupe à l'Oignon", cat: "Soupes", temps: "1h", p: 4, perso: false,
                 ing: [{n:"Oignons",q:"1kg"}, {n:"Bouillon",q:"1.5L"}, {n:"Pain",q:"4 tranches"}, {n:"Gruyère",q:"150g"}],
-                rec: ["Caraméliser oignons 30min.", "Ajouter bouillon.", "Mijoter 20min.", "Gratiner avec pain et fromage."]
+                rec: ["Caraméliser oignons 30min.", "Ajouter bouillon.", "Mijoter 20min.", "Gratiner avec pain et fromage.", "Servir très chaud."]
             },
-            { id: 27, nom: "Velouté de Potiron", cat: "Soupes", temps: "40min", p: 6, perso: false,
+            { id: 23, nom: "Velouté de Potiron", cat: "Soupes", temps: "40min", p: 6, perso: false,
                 ing: [{n:"Potiron",q:"1kg"}, {n:"Pommes de terre",q:"300g"}, {n:"Bouillon",q:"1L"}, {n:"Crème",q:"15cl"}, {n:"Muscade",q:"1 pincée"}],
-                rec: ["Couper potiron et pommes de terre.", "Cuire dans bouillon 30min.", "Mixer finement.", "Ajouter crème et muscade.", "Servir avec croûtons."]
+                rec: ["Couper légumes.", "Cuire dans bouillon 30min.", "Mixer finement.", "Ajouter crème et muscade.", "Servir avec croûtons."]
             },
-            { id: 28, nom: "Minestrone", cat: "Soupes", temps: "45min", p: 6, perso: false,
+            { id: 24, nom: "Minestrone", cat: "Soupes", temps: "45min", p: 6, perso: false,
                 ing: [{n:"Haricots blancs",q:"400g"}, {n:"Tomates",q:"400g"}, {n:"Légumes variés",q:"500g"}, {n:"Pâtes courtes",q:"100g"}, {n:"Parmesan",q:"80g"}],
-                rec: ["Faire revenir légumes.", "Ajouter tomates et haricots.", "Mouiller et mijoter 30min.", "Ajouter pâtes 10min avant la fin.", "Servir avec parmesan."]
+                rec: ["Faire revenir légumes.", "Ajouter tomates et haricots.", "Mijoter 30min.", "Ajouter pâtes 10min avant.", "Servir avec parmesan."]
             },
-            { id: 29, nom: "Soupe Miso", cat: "Soupes", temps: "15min", p: 4, perso: false,
+            { id: 25, nom: "Soupe Miso", cat: "Soupes", temps: "15min", p: 4, perso: false,
                 ing: [{n:"Miso",q:"4 c.à.s"}, {n:"Tofu",q:"200g"}, {n:"Algues wakame",q:"10g"}, {n:"Champignons",q:"150g"}, {n:"Oignons verts",q:"4"}],
-                rec: ["Porter eau à frémissement.", "Délayer miso.", "Ajouter tofu coupé en dés.", "Ajouter algues et champignons.", "Parsemer d'oignons verts."]
+                rec: ["Porter eau à frémissement.", "Délayer miso.", "Ajouter tofu en dés.", "Ajouter algues et champignons.", "Parsemer d'oignons."]
             },
             
-            // SALADES
-            { id: 5, nom: "Salade César", cat: "Salades", temps: "20min", p: 4, perso: false,
+            // SALADES (3 recettes)
+            { id: 26, nom: "Salade César", cat: "Salades", temps: "20min", p: 4, perso: false,
                 ing: [{n:"Laitue romaine",q:"2"}, {n:"Poulet",q:"2 blancs"}, {n:"Croûtons",q:"100g"}, {n:"Parmesan",q:"80g"}],
-                rec: ["Griller le poulet.", "Mélanger salade et sauce.", "Ajouter croûtons et parmesan."]
+                rec: ["Griller le poulet.", "Mélanger salade et sauce.", "Ajouter croûtons et parmesan.", "Servir frais."]
             },
-            { id: 30, nom: "Salade Niçoise", cat: "Salades", temps: "25min", p: 4, perso: false,
+            { id: 27, nom: "Salade Niçoise", cat: "Salades", temps: "25min", p: 4, perso: false,
                 ing: [{n:"Thon",q:"300g"}, {n:"Tomates",q:"4"}, {n:"Œufs",q:"4"}, {n:"Haricots verts",q:"200g"}, {n:"Olives",q:"100g"}],
-                rec: ["Cuire œufs durs et haricots.", "Couper tomates en quartiers.", "Disposer tous ingrédients.", "Ajouter thon émietté.", "Assaisonner vinaigrette."]
+                rec: ["Cuire œufs durs et haricots.", "Couper tomates.", "Disposer tous ingrédients.", "Ajouter thon émietté.", "Assaisonner vinaigrette."]
             },
-            { id: 31, nom: "Taboulé", cat: "Salades", temps: "30min", p: 6, perso: false,
+            { id: 28, nom: "Taboulé", cat: "Salades", temps: "30min", p: 6, perso: false,
                 ing: [{n:"Semoule fine",q:"300g"}, {n:"Tomates",q:"5"}, {n:"Concombre",q:"1"}, {n:"Menthe",q:"1 bouquet"}, {n:"Citron",q:"3"}],
-                rec: ["Hydrater semoule eau bouillante.", "Concasser tomates et concombre.", "Hacher finement menthe.", "Mélanger tous ingrédients.", "Assaisonner citron et huile."]
+                rec: ["Hydrater semoule.", "Concasser tomates et concombre.", "Hacher menthe.", "Mélanger tous ingrédients.", "Assaisonner citron."]
             },
             
-            // TARTES
-            { id: 7, nom: "Quiche Lorraine", cat: "Tartes", temps: "55min", p: 6, perso: false,
+            // TARTES (3 recettes)
+            { id: 29, nom: "Quiche Lorraine", cat: "Tartes", temps: "55min", p: 6, perso: false,
                 ing: [{n:"Pâte brisée",q:"1"}, {n:"Lardons",q:"200g"}, {n:"Œufs",q:"3"}, {n:"Crème",q:"200ml"}, {n:"Gruyère",q:"100g"}],
                 rec: ["Étaler pâte.", "Disposer lardons.", "Verser mélange œufs-crème.", "Ajouter fromage.", "Four 180°C 40min."]
             },
-            { id: 32, nom: "Tarte aux Poireaux", cat: "Tartes", temps: "50min", p: 6, perso: false,
+            { id: 30, nom: "Tarte aux Poireaux", cat: "Tartes", temps: "50min", p: 6, perso: false,
                 ing: [{n:"Pâte brisée",q:"1"}, {n:"Poireaux",q:"4"}, {n:"Crème",q:"20cl"}, {n:"Œufs",q:"2"}, {n:"Fromage",q:"100g"}],
                 rec: ["Faire fondre poireaux.", "Disposer sur pâte.", "Verser mélange œufs-crème.", "Parsemer de fromage.", "Four 180°C 35min."]
             },
-            { id: 33, nom: "Tarte Tomates Mozzarella", cat: "Tartes", temps: "45min", p: 6, perso: false,
+            { id: 31, nom: "Tarte Tomates Mozza", cat: "Tartes", temps: "45min", p: 6, perso: false,
                 ing: [{n:"Pâte feuilletée",q:"1"}, {n:"Tomates",q:"6"}, {n:"Mozzarella",q:"250g"}, {n:"Basilic",q:"1 bouquet"}, {n:"Moutarde",q:"2 c.à.s"}],
-                rec: ["Étaler pâte et badigeonner de moutarde.", "Disposer tomates en tranches.", "Ajouter mozzarella.", "Four 180°C 35min.", "Parsemer de basilic frais."]
+                rec: ["Étaler pâte.", "Badigeonner de moutarde.", "Disposer tomates.", "Ajouter mozzarella.", "Four 180°C 35min."]
             },
             
-            // DESSERTS
-            { id: 11, nom: "Tiramisu", cat: "Desserts", temps: "4h", p: 8, perso: false,
+            // DESSERTS (5 recettes)
+            { id: 32, nom: "Tiramisu", cat: "Desserts", temps: "4h", p: 8, perso: false,
                 ing: [{n:"Mascarpone",q:"500g"}, {n:"Œufs",q:"4"}, {n:"Sucre",q:"100g"}, {n:"Biscuits",q:"300g"}, {n:"Café",q:"30cl"}],
-                rec: ["Battre jaunes et sucre.", "Ajouter mascarpone.", "Monter blancs en neige.", "Tremper biscuits dans café.", "Alterner couches.", "Réfrigérer 4h."]
+                rec: ["Battre jaunes et sucre.", "Ajouter mascarpone.", "Monter blancs en neige.", "Tremper biscuits.", "Alterner couches et réfrigérer 4h."]
             },
-            { id: 12, nom: "Tarte aux Pommes", cat: "Desserts", temps: "50min", p: 6, perso: false,
+            { id: 33, nom: "Tarte aux Pommes", cat: "Desserts", temps: "50min", p: 6, perso: false,
                 ing: [{n:"Pâte sablée",q:"1"}, {n:"Pommes",q:"6"}, {n:"Sucre",q:"80g"}, {n:"Cannelle",q:"1 c.à.c"}],
-                rec: ["Étaler pâte.", "Disposer pommes en rosace.", "Saupoudrer sucre et cannelle.", "Four 180°C 40min."]
+                rec: ["Étaler pâte.", "Disposer pommes en rosace.", "Saupoudrer sucre et cannelle.", "Four 180°C 40min.", "Servir tiède."]
             },
-            { id: 34, nom: "Fondant au Chocolat", cat: "Desserts", temps: "30min", p: 6, perso: false,
+            { id: 34, nom: "Fondant Chocolat", cat: "Desserts", temps: "30min", p: 6, perso: false,
                 ing: [{n:"Chocolat noir",q:"200g"}, {n:"Beurre",q:"150g"}, {n:"Œufs",q:"4"}, {n:"Sucre",q:"150g"}, {n:"Farine",q:"50g"}],
-                rec: ["Faire fondre chocolat et beurre.", "Battre œufs et sucre.", "Mélanger le tout.", "Ajouter farine tamisée.", "Four 180°C 15-20min."]
+                rec: ["Fondre chocolat et beurre.", "Battre œufs et sucre.", "Mélanger le tout.", "Ajouter farine.", "Four 180°C 15-20min."]
             },
             { id: 35, nom: "Crème Brûlée", cat: "Desserts", temps: "4h", p: 6, perso: false,
                 ing: [{n:"Crème liquide",q:"50cl"}, {n:"Jaunes d'œufs",q:"6"}, {n:"Sucre",q:"100g"}, {n:"Vanille",q:"1 gousse"}],
-                rec: ["Infuser vanille dans crème chaude.", "Mélanger jaunes et sucre.", "Incorporer crème progressivement.", "Cuire au bain-marie 160°C 40min.", "Réfrigérer 3h puis caraméliser."]
+                rec: ["Infuser vanille dans crème.", "Mélanger jaunes et sucre.", "Incorporer crème.", "Cuire au bain-marie 160°C 40min.", "Réfrigérer puis caraméliser."]
             },
             { id: 36, nom: "Mousse au Chocolat", cat: "Desserts", temps: "3h", p: 6, perso: false,
                 ing: [{n:"Chocolat noir",q:"200g"}, {n:"Œufs",q:"6"}, {n:"Sucre",q:"50g"}],
-                rec: ["Faire fondre chocolat.", "Séparer blancs et jaunes.", "Mélanger jaunes au chocolat.", "Monter blancs en neige avec sucre.", "Incorporer délicatement.", "Réfrigérer 2h."]
+                rec: ["Fondre chocolat.", "Séparer blancs et jaunes.", "Mélanger jaunes au chocolat.", "Monter blancs en neige.", "Incorporer et réfrigérer 2h."]
             },
             
-            // RECETTES DIABÉTIQUE
-            { id: 37, nom: "Poulet aux Légumes Vapeur", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+            // DIABÉTIQUE (20 recettes)
+            { id: 37, nom: "Poulet Vapeur Légumes", cat: "Diabétique", temps: "30min", p: 4, perso: false,
                 ing: [{n:"Blancs de poulet",q:"4"}, {n:"Brocolis",q:"400g"}, {n:"Haricots verts",q:"300g"}, {n:"Citron",q:"1"}, {n:"Herbes",q:"2 c.à.s"}],
-                rec: ["Cuire poulet à la vapeur 20min.", "Cuire légumes à la vapeur 15min.", "Assaisonner avec citron et herbes.", "Servir avec un filet d'huile d'olive.", "Éviter les sauces grasses."]
+                rec: ["Cuire poulet vapeur 20min.", "Cuire légumes vapeur 15min.", "Assaisonner citron et herbes.", "Servir avec filet d'huile.", "Sans sauces grasses."]
             },
             { id: 38, nom: "Saumon aux Épinards", cat: "Diabétique", temps: "25min", p: 4, perso: false,
                 ing: [{n:"Filets saumon",q:"4"}, {n:"Épinards frais",q:"500g"}, {n:"Ail",q:"2 gousses"}, {n:"Citron",q:"1"}],
-                rec: ["Cuire saumon au four 180°C 15min.", "Faire tomber épinards avec ail.", "Servir saumon sur lit d'épinards.", "Arroser de jus de citron.", "Sans ajout de matières grasses."]
+                rec: ["Cuire saumon au four 180°C 15min.", "Faire tomber épinards avec ail.", "Servir saumon sur épinards.", "Arroser de citron.", "Sans matières grasses."]
             },
             { id: 39, nom: "Salade de Lentilles", cat: "Diabétique", temps: "35min", p: 4, perso: false,
                 ing: [{n:"Lentilles vertes",q:"300g"}, {n:"Tomates",q:"3"}, {n:"Concombre",q:"1"}, {n:"Oignon rouge",q:"1"}, {n:"Persil",q:"1 bouquet"}],
-                rec: ["Cuire lentilles 25min.", "Couper légumes en petits dés.", "Mélanger lentilles refroidies et légumes.", "Assaisonner vinaigrette légère.", "Riche en fibres, faible IG."]
+                rec: ["Cuire lentilles 25min.", "Couper légumes en dés.", "Mélanger lentilles refroidies.", "Vinaigrette légère.", "Riche en fibres IG bas."]
             },
-            { id: 40, nom: "Poisson Blanc en Papillote", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+            { id: 40, nom: "Poisson en Papillote", cat: "Diabétique", temps: "30min", p: 4, perso: false,
                 ing: [{n:"Filets cabillaud",q:"4"}, {n:"Courgettes",q:"2"}, {n:"Tomates cerises",q:"200g"}, {n:"Basilic",q:"1 bouquet"}, {n:"Citron",q:"1"}],
-                rec: ["Couper légumes en rondelles.", "Disposer poisson et légumes en papillote.", "Ajouter herbes et citron.", "Four 180°C 20min.", "Sans matières grasses ajoutées."]
+                rec: ["Couper légumes.", "Disposer en papillote.", "Ajouter herbes et citron.", "Four 180°C 20min.", "Sans matières grasses."]
             },
-            { id: 41, nom: "Soupe de Légumes Maison", cat: "Diabétique", temps: "40min", p: 6, perso: false,
+            { id: 41, nom: "Soupe Légumes Maison", cat: "Diabétique", temps: "40min", p: 6, perso: false,
                 ing: [{n:"Carottes",q:"3"}, {n:"Poireaux",q:"2"}, {n:"Céleri",q:"2 branches"}, {n:"Courgettes",q:"2"}, {n:"Bouillon",q:"1.5L"}],
-                rec: ["Couper tous légumes en morceaux.", "Faire revenir sans matière grasse.", "Ajouter bouillon et cuire 30min.", "Mixer ou laisser en morceaux.", "Pas de pommes de terre (IG élevé)."]
+                rec: ["Couper tous légumes.", "Faire revenir sans MG.", "Ajouter bouillon 30min.", "Mixer ou laisser morceaux.", "Sans pommes de terre."]
             },
-            { id: 42, nom: "Omelette aux Champignons", cat: "Diabétique", temps: "15min", p: 2, perso: false,
+            { id: 42, nom: "Omelette Champignons", cat: "Diabétique", temps: "15min", p: 2, perso: false,
                 ing: [{n:"Œufs",q:"4"}, {n:"Champignons",q:"200g"}, {n:"Oignon",q:"1"}, {n:"Persil",q:"1 bouquet"}],
-                rec: ["Faire revenir champignons et oignon.", "Battre les œufs.", "Verser sur champignons.", "Cuire à feu doux.", "Riche en protéines, sans glucides."]
+                rec: ["Revenir champignons et oignon.", "Battre les œufs.", "Verser sur champignons.", "Cuire à feu doux.", "Riche protéines 0 glucides."]
             },
-            { id: 43, nom: "Dinde aux Haricots Verts", cat: "Diabétique", temps: "35min", p: 4, perso: false,
-                ing: [{n:"Escalopes dinde",q:"4"}, {n:"Haricots verts",q:"600g"}, {n:"Tomates",q:"3"}, {n:"Oignon",q:"1"}, {n:"Herbes de Provence",q:"1 c.à.s"}],
-                rec: ["Cuire haricots verts à la vapeur.", "Griller escalopes sans matière grasse.", "Faire une sauce tomate légère.", "Servir ensemble.", "Repas équilibré et léger."]
+            { id: 43, nom: "Dinde Haricots Verts", cat: "Diabétique", temps: "35min", p: 4, perso: false,
+                ing: [{n:"Escalopes dinde",q:"4"}, {n:"Haricots verts",q:"600g"}, {n:"Tomates",q:"3"}, {n:"Oignon",q:"1"}, {n:"Herbes Provence",q:"1 c.à.s"}],
+                rec: ["Cuire haricots vapeur.", "Griller escalopes sans MG.", "Sauce tomate légère.", "Servir ensemble.", "Repas équilibré léger."]
             },
-            { id: 44, nom: "Salade de Quinoa aux Légumes", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+            { id: 44, nom: "Salade Quinoa Légumes", cat: "Diabétique", temps: "30min", p: 4, perso: false,
                 ing: [{n:"Quinoa",q:"250g"}, {n:"Poivrons",q:"2"}, {n:"Concombre",q:"1"}, {n:"Tomates cerises",q:"200g"}, {n:"Menthe",q:"1 bouquet"}],
-                rec: ["Cuire quinoa selon instructions.", "Couper légumes en petits dés.", "Mélanger quinoa refroidi et légumes.", "Assaisonner citron et herbes.", "IG bas, riche en protéines."]
+                rec: ["Cuire quinoa.", "Couper légumes en dés.", "Mélanger quinoa refroidi.", "Assaisonner citron.", "IG bas riche protéines."]
             },
             { id: 45, nom: "Ratatouille Légère", cat: "Diabétique", temps: "45min", p: 6, perso: false,
                 ing: [{n:"Aubergines",q:"2"}, {n:"Courgettes",q:"3"}, {n:"Poivrons",q:"2"}, {n:"Tomates",q:"5"}, {n:"Ail",q:"3 gousses"}],
-                rec: ["Couper légumes en dés.", "Cuire séparément sans huile.", "Mélanger tous légumes.", "Ajouter tomates et ail.", "Mijoter 30min, 100% légumes."]
+                rec: ["Couper légumes.", "Cuire séparément sans huile.", "Mélanger tous légumes.", "Ajouter tomates et ail.", "Mijoter 30min 100% légumes."]
             },
-            { id: 46, nom: "Cabillaud aux Légumes Grillés", cat: "Diabétique", temps: "35min", p: 4, perso: false,
+            { id: 46, nom: "Cabillaud Légumes Grillés", cat: "Diabétique", temps: "35min", p: 4, perso: false,
                 ing: [{n:"Filets cabillaud",q:"4"}, {n:"Courgettes",q:"2"}, {n:"Aubergine",q:"1"}, {n:"Poivrons",q:"2"}, {n:"Thym",q:"2 branches"}],
-                rec: ["Trancher légumes finement.", "Griller légumes au four.", "Cuire cabillaud au four 180°C 15min.", "Servir poisson sur légumes.", "Minimal en matières grasses."]
+                rec: ["Trancher légumes finement.", "Griller légumes au four.", "Cuire cabillaud 180°C 15min.", "Servir poisson sur légumes.", "Minimal en MG."]
             },
-            { id: 47, nom: "Curry de Poulet Léger", cat: "Diabétique", temps: "40min", p: 4, perso: false,
+            { id: 47, nom: "Curry Poulet Léger", cat: "Diabétique", temps: "40min", p: 4, perso: false,
                 ing: [{n:"Blancs poulet",q:"4"}, {n:"Curry",q:"2 c.à.s"}, {n:"Lait coco light",q:"30cl"}, {n:"Brocolis",q:"400g"}, {n:"Oignon",q:"1"}],
-                rec: ["Couper poulet en morceaux.", "Faire revenir avec curry.", "Ajouter lait coco allégé.", "Ajouter brocolis.", "Mijoter 25min, servir sans riz."]
+                rec: ["Couper poulet.", "Faire revenir avec curry.", "Ajouter lait coco allégé.", "Ajouter brocolis.", "Mijoter 25min sans riz."]
             },
             { id: 48, nom: "Courgettes Farcies", cat: "Diabétique", temps: "50min", p: 4, perso: false,
-                ing: [{n:"Courgettes",q:"4"}, {n:"Viande hachée maigre",q:"300g"}, {n:"Tomates",q:"2"}, {n:"Oignon",q:"1"}, {n:"Herbes",q:"2 c.à.s"}],
+                ing: [{n:"Courgettes",q:"4"}, {n:"Viande hachée 5%",q:"300g"}, {n:"Tomates",q:"2"}, {n:"Oignon",q:"1"}, {n:"Herbes",q:"2 c.à.s"}],
                 rec: ["Évider courgettes.", "Préparer farce viande-tomates.", "Farcir courgettes.", "Four 180°C 35min.", "Sans fromage ajouté."]
             },
             { id: 49, nom: "Salade Grecque Light", cat: "Diabétique", temps: "15min", p: 4, perso: false,
                 ing: [{n:"Tomates",q:"4"}, {n:"Concombre",q:"1"}, {n:"Poivron",q:"1"}, {n:"Olives",q:"50g"}, {n:"Feta allégée",q:"100g"}],
-                rec: ["Couper légumes en dés.", "Ajouter olives et feta.", "Assaisonner huile d'olive et citron.", "Ajouter origan.", "Frais et peu calorique."]
+                rec: ["Couper légumes en dés.", "Ajouter olives et feta.", "Assaisonner huile citron.", "Ajouter origan.", "Frais peu calorique."]
             },
-            { id: 50, nom: "Blanc de Poulet Grillé Épicé", cat: "Diabétique", temps: "25min", p: 4, perso: false,
+            { id: 50, nom: "Poulet Grillé Épicé", cat: "Diabétique", temps: "25min", p: 4, perso: false,
                 ing: [{n:"Blancs poulet",q:"4"}, {n:"Paprika",q:"1 c.à.s"}, {n:"Cumin",q:"1 c.à.c"}, {n:"Citron",q:"1"}, {n:"Salade verte",q:"400g"}],
-                rec: ["Mariner poulet avec épices et citron.", "Griller sans matière grasse.", "Servir avec salade verte.", "Assaisonner vinaigre balsamique.", "Protéines pures, 0 glucides."]
+                rec: ["Mariner poulet épices citron.", "Griller sans MG.", "Servir avec salade.", "Vinaigre balsamique.", "Protéines pures 0 glucides."]
             },
-            { id: 51, nom: "Velouté de Brocolis Sans Crème", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+            { id: 51, nom: "Velouté Brocolis Sans Crème", cat: "Diabétique", temps: "30min", p: 4, perso: false,
                 ing: [{n:"Brocolis",q:"800g"}, {n:"Bouillon",q:"1L"}, {n:"Oignon",q:"1"}, {n:"Ail",q:"2 gousses"}],
-                rec: ["Faire revenir oignon et ail.", "Ajouter brocolis et bouillon.", "Cuire 20min.", "Mixer finement.", "Sans crème, onctueux naturellement."]
+                rec: ["Revenir oignon et ail.", "Ajouter brocolis et bouillon.", "Cuire 20min.", "Mixer finement.", "Sans crème onctueux naturel."]
             },
-            { id: 52, nom: "Pavé de Saumon aux Asperges", cat: "Diabétique", temps: "25min", p: 4, perso: false,
+            { id: 52, nom: "Pavé Saumon Asperges", cat: "Diabétique", temps: "25min", p: 4, perso: false,
                 ing: [{n:"Pavés saumon",q:"4"}, {n:"Asperges vertes",q:"500g"}, {n:"Citron",q:"1"}, {n:"Aneth",q:"1 bouquet"}],
-                rec: ["Cuire asperges vapeur 10min.", "Griller saumon 4min par côté.", "Arroser de citron.", "Parsemer d'aneth.", "Oméga-3, légumes verts."]
+                rec: ["Cuire asperges vapeur 10min.", "Griller saumon 4min côté.", "Arroser de citron.", "Parsemer d'aneth.", "Oméga-3 légumes verts."]
             },
             { id: 53, nom: "Tomates Farcies Légères", cat: "Diabétique", temps: "1h", p: 4, perso: false,
                 ing: [{n:"Grosses tomates",q:"8"}, {n:"Viande hachée 5%",q:"400g"}, {n:"Oignon",q:"1"}, {n:"Persil",q:"1 bouquet"}, {n:"Ail",q:"2 gousses"}],
-                rec: ["Évider tomates.", "Préparer farce viande-herbes.", "Farcir tomates.", "Four 180°C 45min.", "Sans riz dans la farce."]
+                rec: ["Évider tomates.", "Préparer farce viande-herbes.", "Farcir tomates.", "Four 180°C 45min.", "Sans riz dans farce."]
             },
             { id: 54, nom: "Poulet Tandoori Sans Yaourt", cat: "Diabétique", temps: "2h30", p: 4, perso: false,
                 ing: [{n:"Cuisses poulet",q:"8"}, {n:"Épices tandoori",q:"3 c.à.s"}, {n:"Citron",q:"2"}, {n:"Ail",q:"4 gousses"}],
-                rec: ["Mariner poulet 2h avec épices et citron.", "Cuire au four 200°C 40min.", "Servir avec légumes verts.", "Sans yaourt ni matières grasses.", "Savoureux et sain."]
+                rec: ["Mariner poulet 2h épices citron.", "Four 200°C 40min.", "Servir avec légumes verts.", "Sans yaourt ni MG.", "Savoureux et sain."]
             },
-            { id: 55, nom: "Wok de Légumes au Tofu", cat: "Diabétique", temps: "20min", p: 4, perso: false,
+            { id: 55, nom: "Wok Légumes Tofu", cat: "Diabétique", temps: "20min", p: 4, perso: false,
                 ing: [{n:"Tofu ferme",q:"400g"}, {n:"Brocolis",q:"300g"}, {n:"Poivrons",q:"2"}, {n:"Champignons",q:"200g"}, {n:"Sauce soja",q:"3 c.à.s"}],
-                rec: ["Couper tofu en dés et légumes.", "Faire sauter au wok sans huile.", "Ajouter sauce soja.", "Cuire 10min à feu vif.", "Protéines végétales, IG bas."]
+                rec: ["Couper tofu et légumes.", "Sauter au wok sans huile.", "Ajouter sauce soja.", "Cuire 10min feu vif.", "Protéines végétales IG bas."]
             },
-            { id: 56, nom: "Lieu Noir aux Petits Légumes", cat: "Diabétique", temps: "30min", p: 4, perso: false,
+            { id: 56, nom: "Lieu Noir Petits Légumes", cat: "Diabétique", temps: "30min", p: 4, perso: false,
                 ing: [{n:"Filets lieu noir",q:"4"}, {n:"Carottes",q:"3"}, {n:"Navets",q:"2"}, {n:"Haricots verts",q:"200g"}, {n:"Citron",q:"1"}],
-                rec: ["Cuire légumes à la vapeur.", "Poêler poisson 3min par côté.", "Servir ensemble.", "Arroser de jus de citron.", "Repas complet léger."]
+                rec: ["Cuire légumes vapeur.", "Poêler poisson 3min côté.", "Servir ensemble.", "Arroser jus de citron.", "Repas complet léger."]
             }
         ];
+
+        const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        const categories = ['Tous', 'Pâtes', 'Viandes', 'Poissons', 'Végétarien', 'Soupes', 'Salades', 'Tartes', 'Desserts', 'Diabétique', 'Mes Recettes'];
+        
+        let recettesPerso = [];
+        let planning = {};
+        let categorieActive = 'Tous';
+        let recetteActive = null;
+        let prochainId = 100;
+
+        function getToutesRecettes() {
+            return [...recettesPredefinies, ...recettesPerso];
+        }
+
+        function init() {
+            chargerDonnees();
+            afficherFiltres();
+            afficherRecettes();
+            afficherPlanning();
+            mettreAJourBadgeCourses();
+        }
+
+        function chargerDonnees() {
+            const savedRecettes = localStorage.getItem('recettesPerso');
+            const savedPlanning = localStorage.getItem('planning');
+            
+            if (savedRecettes) {
+                recettesPerso = JSON.parse(savedRecettes);
+                prochainId = Math.max(...recettesPerso.map(r => r.id), 100) + 1;
+            }
+            if (savedPlanning) {
+                planning = JSON.parse(savedPlanning);
+            }
+        }
+
+        function afficherFiltres() {
+            const filtersDiv = document.getElementById('filters');
+            filtersDiv.innerHTML = categories.map(cat => 
+                `<button class="filter-btn ${cat === categorieActive ? 'active' : ''}" 
+                        onclick="changerCategorie('${cat}')">${cat}</button>`
+            ).join('');
+        }
+
+        function changerCategorie(cat) {
+            categorieActive = cat;
+            afficherFiltres();
+            afficherRecettes();
+        }
+
+        function afficherRecettes() {
+            const listDiv = document.getElementById('recette-list');
+            let recettes = getToutesRecettes();
+            
+            if (categorieActive === 'Mes Recettes') {
+                recettes = recettes.filter(r => r.perso);
+            } else if (categorieActive !== 'Tous') {
+                recettes = recettes.filter(r => r.cat === categorieActive);
+            }
+            
+            if (recettes.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🍽️</div>
+                        <h3>Aucune recette</h3>
+                        <p>Créez votre première recette personnelle !</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            listDiv.innerHTML = recettes.map(r => `
+                <div class="recette-item ${r.perso ? 'perso' : ''}" onclick="ouvrirModal(${r.id})">
+                    ${r.perso ? '<button class="delete-mini-btn" onclick="event.stopPropagation(); supprimerRecette(' + r.id + ')">×</button>' : ''}
+                    <span class="badge ${r.perso ? 'perso' : ''}">${r.perso ? 'MA RECETTE' : r.cat}</span>
+                    <h3>${r.nom}</h3>
+                    <div style="display: flex; gap: 15px; color: #666; font-size: 0.95em;">
+                        <span>⏱️ ${r.temps || 'N/A'}</span>
+                        <span>👥 ${r.p} pers.</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function afficherPlanning() {
+            const planningRapide = document.getElementById('planning-rapide');
+            const planningComplet = document.getElementById('planning-complet');
+            
+            const html = jours.map(jour => {
+                const midi = planning[jour]?.midi;
+                const soir = planning[jour]?.soir;
+                
+                return `
+                    <div class="jour-item">
+                        <div class="jour-header">
+                            <h3>${jour}</h3>
+                        </div>
+                        <div class="repas-container">
+                            <div class="repas-slot midi">
+                                <div class="repas-label">🌞 Midi</div>
+                                <div class="repas-content ${!midi ? 'empty' : ''}">
+                                    ${midi ? `
+                                        <div class="plat-info">${midi.nom}</div>
+                                        <button class="delete-btn" onclick="retirerRepas('${jour}', 'midi')">Retirer</button>
+                                    ` : 'Aucun repas'}
+                                </div>
+                            </div>
+                            <div class="repas-slot soir">
+                                <div class="repas-label">🌙 Soir</div>
+                                <div class="repas-content ${!soir ? 'empty' : ''}">
+                                    ${soir ? `
+                                        <div class="plat-info">${soir.nom}</div>
+                                        <button class="delete-btn" onclick="retirerRepas('${jour}', 'soir')">Retirer</button>
+                                    ` : 'Aucun repas'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            planningRapide.innerHTML = html;
+            planningComplet.innerHTML = html;
+        }
+
+        function ajouterRepas(jour, moment, recette) {
+            if (!planning[jour]) planning[jour] = {};
+            planning[jour][moment] = recette;
+            localStorage.setItem('planning', JSON.stringify(planning));
+            afficherPlanning();
+            mettreAJourCourses();
+            mettreAJourBadgeCourses();
+        }
+
+        function retirerRepas(jour, moment) {
+            if (planning[jour]) {
+                delete planning[jour][moment];
+                if (!planning[jour].midi && !planning[jour].soir) {
+                    delete planning[jour];
+                }
+            }
+            localStorage.setItem('planning', JSON.stringify(planning));
+            afficherPlanning();
+            mettreAJourCourses();
+            mettreAJourBadgeCourses();
+        }
+
+        function mettreAJourCourses() {
+            const coursesDiv = document.getElementById('courses-content');
+            const supermarchesSection = document.getElementById('supermarches-section');
+            
+            const ingredients = {};
+            Object.values(planning).forEach(jour => {
+                ['midi', 'soir'].forEach(moment => {
+                    if (jour[moment]) {
+                        jour[moment].ing.forEach(ing => {
+                            if (!ingredients[ing.n]) {
+                                ingredients[ing.n] = [];
+                            }
+                            ingredients[ing.n].push(ing.q);
+                        });
+                    }
+                });
+            });
+
+            const nbIngredients = Object.keys(ingredients).length;
+
+            if (nbIngredients === 0) {
+                coursesDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🛒</div>
+                        <h3>Votre liste est vide</h3>
+                        <p>Ajoutez des recettes à votre planning pour générer votre liste de courses</p>
+                    </div>
+                `;
+                supermarchesSection.style.display = 'none';
+            } else {
+                coursesDiv.innerHTML = `
+                    <button class="copy-btn" onclick="copierListe()">
+                        📋 Copier la liste (${nbIngredients} ingrédients)
+                    </button>
+                    <div class="liste-courses">
+                        ${Object.entries(ingredients).map(([nom, quantites]) => `
+                            <div class="ingredient-item">
+                                <span><strong>${nom}</strong></span>
+                                <span>${quantites.join(' + ')}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                supermarchesSection.style.display = 'block';
+            }
+        }
+
+        function mettreAJourBadgeCourses() {
+            const ingredients = {};
+            Object.values(planning).forEach(jour => {
+                ['midi', 'soir'].forEach(moment => {
+                    if (jour[moment]) {
+                        jour[moment].ing.forEach(ing => {
+                            ingredients[ing.n] = true;
+                        });
+                    }
+                });
+            });
+            
+            const nb = Object.keys(ingredients).length;
+            const badge = document.getElementById('courses-badge');
+            badge.innerHTML = nb > 0 ? `<span class="courses-badge">${nb}</span>` : '';
+        }
+
+        function copierListe() {
+            const ingredients = {};
+            Object.values(planning).forEach(jour => {
+                ['midi', 'soir'].forEach(moment => {
+                    if (jour[moment]) {
+                        jour[moment].ing.forEach(ing => {
+                            if (!ingredients[ing.n]) ingredients[ing.n] = [];
+                            ingredients[ing.n].push(ing.q);
+                        });
+                    }
+                });
+            });
+
+            const texte = Object.entries(ingredients)
+                .map(([nom, qs]) => `${nom}: ${qs.join(', ')}`)
+                .join('\n');
+            
+            navigator.clipboard.writeText(texte).then(() => {
+                alert('✅ Liste copiée dans le presse-papier !');
+            });
+        }
+
+        function envoyerSupermarche(nom, url) {
+            copierListe();
+            window.open(url, '_blank');
+            setTimeout(() => {
+                alert(`📋 Liste copiée !\n\nLe site ${nom} s'ouvre dans un nouvel onglet.\nCollez votre liste dans la barre de recherche.`);
+            }, 500);
+        }
+
+        function ouvrirModal(recetteId) {
+            const recettes = getToutesRecettes();
+            recetteActive = recettes.find(r => r.id === recetteId);
+            const modal = document.getElementById('modal');
+            
+            document.getElementById('modal-titre').textContent = recetteActive.nom;
+            document.getElementById('modal-info').innerHTML = `
+                ⏱️ ${recetteActive.temps || 'N/A'} • 👥 ${recetteActive.p} pers. • 📁 ${recetteActive.cat}
+                ${recetteActive.perso ? ' • <span style="color: #FFD700;">★ MA RECETTE</span>' : ''}
+            `;
+            
+            document.getElementById('modal-ingredients').innerHTML = recetteActive.ing.map(ing => `
+                <div style="padding: 12px; background: linear-gradient(135deg, #FFE5EC, #FFF0F5); border-radius: 12px; display: flex; justify-content: space-between; border: 2px solid #FF6B9D;">
+                    <span><strong>${ing.n}</strong></span>
+                    <span style="color: #666;">${ing.q}</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('modal-preparation').innerHTML = recetteActive.rec.map((etape, idx) => `
+                <div style="display: flex; gap: 15px; margin-bottom: 15px; padding: 18px; background: linear-gradient(135deg, #FFF9E6, #FFFEF0); border-radius: 15px; border-left: 6px solid #FF6B9D;">
+                    <div style="background: linear-gradient(135deg, #FF6B9D, #FFA07A); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; box-shadow: 0 4px 10px rgba(255, 107, 157, 0.3);">
+                        ${idx + 1}
+                    </div>
+                    <p style="line-height: 1.6; color: #333;">${etape}</p>
+                </div>
+            `).join('');
+            
+            document.getElementById('modal-repas').innerHTML = jours.flatMap(jour => [
+                {jour, moment: 'midi', label: `${jour} 🌞`},
+                {jour, moment: 'soir', label: `${jour} 🌙`}
+            ]).map(({jour, moment, label}) => {
+                const estSelectionne = planning[jour]?.[moment]?.id === recetteActive.id;
+                return `
+                    <button class="repas-btn ${estSelectionne ? 'selected' : ''}" 
+                            onclick="toggleRepas('${jour}', '${moment}')">
+                        ${estSelectionne ? '✓ ' : ''}${label}
+                    </button>
+                `;
+            }).join('');
+            
+            modal.classList.add('active');
+        }
+
+        function fermerModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function toggleRepas(jour, moment) {
+            if (planning[jour]?.[moment]?.id === recetteActive.id) {
+                retirerRepas(jour, moment);
+            } else {
+                ajouterRepas(jour, moment, recetteActive);
+            }
+            
+            document.getElementById('modal-repas').innerHTML = jours.flatMap(j => [
+                {jour: j, moment: 'midi', label: `${j} 🌞`},
+                {jour: j, moment: 'soir', label: `${j} 🌙`}
+            ]).map(({jour: j, moment: m, label}) => {
+                const estSelectionne = planning[j]?.[m]?.id === recetteActive.id;
+                return `
+                    <button class="repas-btn ${estSelectionne ? 'selected' : ''}" 
+                            onclick="toggleRepas('${j}', '${m}')">
+                        ${estSelectionne ? '✓ ' : ''}${label}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function ouvrirModalNouvelleRecette() {
+            document.getElementById('modal-nouvelle-recette').classList.add('active');
+        }
+
+        function fermerModalNouvelleRecette() {
+            document.getElementById('modal-nouvelle-recette').classList.remove('active');
+            document.getElementById('form-nouvelle-recette').reset();
+            document.getElementById('ingredients-inputs').innerHTML = `
+                <div class="ingredient-row">
+                    <input type="text" placeholder="Nom ingrédient" class="ing-nom" required>
+                    <input type="text" placeholder="Quantité" class="ing-qte" required>
+                    <button type="button" class="btn-add" onclick="ajouterIngredient()">+</button>
+                </div>
+            `;
+            document.getElementById('etapes-list').innerHTML = `
+                <div class="etape-row">
+                    <div class="etape-number">1</div>
+                    <textarea rows="3" class="etape-text" required placeholder="Décrivez l'étape 1..."></textarea>
+                    <button type="button" class="btn-add" onclick="ajouterEtape()">+</button>
+                </div>
+            `;
+        }
+
+        function ajouterIngredient() {
+            const container = document.getElementById('ingredients-inputs');
+            const div = document.createElement('div');
+            div.className = 'ingredient-row';
+            div.innerHTML = `
+                <input type="text" placeholder="Nom ingrédient" class="ing-nom" required>
+                <input type="text" placeholder="Quantité" class="ing-qte" required>
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">−</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function ajouterEtape() {
+            const container = document.getElementById('etapes-list');
+            const numero = container.children.length + 1;
+            const div = document.createElement('div');
+            div.className = 'etape-row';
+            div.innerHTML = `
+                <div class="etape-number">${numero}</div>
+                <textarea rows="3" class="etape-text" required placeholder="Décrivez l'étape ${numero}..."></textarea>
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove(); renumeroterEtapes()">−</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function renumeroterEtapes() {
+            const etapes = document.querySelectorAll('#etapes-list .etape-row');
+            etapes.forEach((etape, idx) => {
+                etape.querySelector('.etape-number').textContent = idx + 1;
+                etape.querySelector('textarea').placeholder = `Décrivez l'étape ${idx + 1}...`;
+            });
+        }
+
+        function sauvegarderNouvelleRecette(event) {
+            event.preventDefault();
+            
+            const nom = document.getElementById('nom-recette').value;
+            const categorie = document.getElementById('categorie-recette').value;
+            const temps = document.getElementById('temps-recette').value || 'N/A';
+            const portions = parseInt(document.getElementById('portions-recette').value);
+            
+            const ingredients = Array.from(document.querySelectorAll('#ingredients-inputs .ingredient-row'))
+                .map(row => ({
+                    n: row.querySelector('.ing-nom').value,
+                    q: row.querySelector('.ing-qte').value
+                }));
+            
+            const etapes = Array.from(document.querySelectorAll('#etapes-list .etape-text'))
+                .map(textarea => textarea.value);
+            
+            const nouvelleRecette = {
+                id: prochainId++,
+                nom: nom,
+                cat: categorie,
+                temps: temps,
+                p: portions,
+                ing: ingredients,
+                rec: etapes,
+                perso: true
+            };
+            
+            recettesPerso.push(nouvelleRecette);
+            localStorage.setItem('recettesPerso', JSON.stringify(recettesPerso));
+            
+            fermerModalNouvelleRecette();
+            afficherRecettes();
+            
+            alert('✅ Recette sauvegardée avec succès !');
+        }
+
+        function supprimerRecette(id) {
+            if (confirm('Voulez-vous vraiment supprimer cette recette ?')) {
+                recettesPerso = recettesPerso.filter(r => r.id !== id);
+                localStorage.setItem('recettesPerso', JSON.stringify(recettesPerso));
+                afficherRecettes();
+            }
+        }
+
+        function changerVue(vue) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + vue).classList.add('active');
+            
+            if (vue === 'courses') {
+                mettreAJourCourses();
+            }
+        }
+
+        window.onclick = function(event) {
+            if (event.target.id === 'modal') fermerModal();
+            if (event.target.id === 'modal-nouvelle-recette') fermerModalNouvelleRecette();
+        }
+
+        init();
+    </script>
+</body>
+</html>
