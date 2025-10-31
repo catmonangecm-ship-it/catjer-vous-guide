@@ -203,6 +203,38 @@
             font-size: 1.3em;
         }
 
+        .rating {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+            align-items: center;
+        }
+
+        .star {
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .star:hover {
+            transform: scale(1.2);
+        }
+
+        .star.filled {
+            color: #FFD700;
+        }
+
+        .star.empty {
+            color: #ddd;
+        }
+
+        .rating-display {
+            font-size: 0.85em;
+            color: #666;
+            margin-left: 8px;
+        }
+
         .badge {
             display: inline-block;
             background: linear-gradient(135deg, #FF6B9D, #FFA07A);
@@ -660,6 +692,7 @@
             cursor: pointer;
             box-shadow: 0 8px 20px rgba(147, 112, 219, 0.4);
             transition: all 0.3s;
+            display: none;
         }
 
         .copy-btn:hover {
@@ -734,19 +767,19 @@
             </div>
             
             <div class="card" id="supermarches-section" style="display:none; margin-top: 25px;">
-                <h2>🏪 Commander en Ligne</h2>
-                <p style="margin-bottom: 25px; color: #666; font-size: 1.1em;">Envoyez votre liste directement à votre supermarché</p>
+                <h2>🏪 Envoyer au Supermarché</h2>
+                <p style="margin-bottom: 25px; color: #666; font-size: 1.1em;">Vos ingrédients seront ajoutés directement dans votre panier en ligne</p>
                 <div class="supermarche-grid">
-                    <button class="supermarche-btn carrefour" onclick="envoyerSupermarche('Carrefour', 'https://www.carrefour.fr')">
+                    <button class="supermarche-btn carrefour" onclick="envoyerAuPanier('Carrefour', 'https://www.carrefour.fr/recherche?keyword=')">
                         🛒 Carrefour
                     </button>
-                    <button class="supermarche-btn auchan" onclick="envoyerSupermarche('Auchan', 'https://www.auchan.fr')">
+                    <button class="supermarche-btn auchan" onclick="envoyerAuPanier('Auchan', 'https://www.auchan.fr/recherche?text=')">
                         🏪 Auchan
                     </button>
-                    <button class="supermarche-btn leclerc" onclick="envoyerSupermarche('Leclerc', 'https://www.e.leclerc')">
+                    <button class="supermarche-btn leclerc" onclick="envoyerAuPanier('Leclerc', 'https://www.e.leclerc/recherche?keywords=')">
                         🛍️ Leclerc
                     </button>
-                    <button class="supermarche-btn intermarche" onclick="envoyerSupermarche('Intermarché', 'https://www.intermarche.com')">
+                    <button class="supermarche-btn intermarche" onclick="envoyerAuPanier('Intermarché', 'https://www.intermarche.com/recherche?search=')">
                         🏬 Intermarché
                     </button>
                 </div>
@@ -1093,6 +1126,7 @@
         
         let recettesPerso = [];
         let planning = {};
+        let notations = {};
         let categorieActive = 'Tous';
         let recetteActive = null;
         let prochainId = 100;
@@ -1112,6 +1146,7 @@
         function chargerDonnees() {
             const savedRecettes = localStorage.getItem('recettesPerso');
             const savedPlanning = localStorage.getItem('planning');
+            const savedNotations = localStorage.getItem('notations');
             
             if (savedRecettes) {
                 recettesPerso = JSON.parse(savedRecettes);
@@ -1119,6 +1154,9 @@
             }
             if (savedPlanning) {
                 planning = JSON.parse(savedPlanning);
+            }
+            if (savedNotations) {
+                notations = JSON.parse(savedNotations);
             }
         }
 
@@ -1157,7 +1195,10 @@
                 return;
             }
             
-            listDiv.innerHTML = recettes.map(r => `
+            listDiv.innerHTML = recettes.map(r => {
+                const note = notations[r.id] || 0;
+                const noteAffichee = note > 0 ? `${note}/5` : 'Non noté';
+                return `
                 <div class="recette-item ${r.perso ? 'perso' : ''}" 
                      draggable="true" 
                      data-recette-id="${r.id}"
@@ -1171,8 +1212,15 @@
                         <span>⏱️ ${r.temps || 'N/A'}</span>
                         <span>👥 ${r.p} pers.</span>
                     </div>
+                    <div class="rating" onclick="event.stopPropagation()">
+                        ${[1,2,3,4,5].map(etoile => `
+                            <span class="star ${etoile <= note ? 'filled' : 'empty'}" 
+                                  onclick="noterRecette(${r.id}, ${etoile})">★</span>
+                        `).join('')}
+                        <span class="rating-display">${noteAffichee}</span>
+                    </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function afficherPlanning() {
@@ -1279,9 +1327,6 @@
                 supermarchesSection.style.display = 'none';
             } else {
                 coursesDiv.innerHTML = `
-                    <button class="copy-btn" onclick="copierListe()">
-                        📋 Copier la liste (${nbIngredients} ingrédients)
-                    </button>
                     <div class="liste-courses">
                         ${Object.entries(ingredients).map(([nom, quantites]) => `
                             <div class="ingredient-item">
@@ -1334,23 +1379,77 @@
             });
         }
 
-        function envoyerSupermarche(nom, url) {
-            copierListe();
-            window.open(url, '_blank');
-            setTimeout(() => {
-                alert(`📋 Liste copiée !\n\nLe site ${nom} s'ouvre dans un nouvel onglet.\nCollez votre liste dans la barre de recherche.`);
-            }, 500);
+        function envoyerAuPanier(nomSupermarche, urlBase) {
+            const ingredients = {};
+            Object.values(planning).forEach(jour => {
+                ['midi', 'soir'].forEach(moment => {
+                    if (jour[moment]) {
+                        jour[moment].ing.forEach(ing => {
+                            if (!ingredients[ing.n]) {
+                                ingredients[ing.n] = [];
+                            }
+                            ingredients[ing.n].push(ing.q);
+                        });
+                    }
+                });
+            });
+
+            const listeIngredients = Object.keys(ingredients);
+            
+            if (listeIngredients.length === 0) {
+                alert('❌ Votre liste de courses est vide !');
+                return;
+            }
+
+            // Ouvrir plusieurs onglets pour rechercher chaque ingrédient
+            let confirmation = confirm(`🛒 ${nomSupermarche}\n\n` +
+                `${listeIngredients.length} ingrédients vont être recherchés.\n\n` +
+                `Un nouvel onglet s'ouvrira pour chaque ingrédient principal.\n\n` +
+                `Voulez-vous continuer ?`);
+            
+            if (confirmation) {
+                // Prendre les 5 premiers ingrédients principaux pour ne pas surcharger
+                const ingredientsPrincipaux = listeIngredients.slice(0, 5);
+                
+                ingredientsPrincipaux.forEach((ingredient, index) => {
+                    setTimeout(() => {
+                        const recherche = encodeURIComponent(ingredient);
+                        window.open(urlBase + recherche, '_blank');
+                    }, index * 500); // Délai de 500ms entre chaque ouverture
+                });
+
+                setTimeout(() => {
+                    alert(`✅ ${ingredientsPrincipaux.length} recherches lancées sur ${nomSupermarche} !\n\n` +
+                        `Ajoutez les produits à votre panier depuis les onglets ouverts.\n\n` +
+                        (listeIngredients.length > 5 ? `📝 Il reste ${listeIngredients.length - 5} ingrédients à rechercher manuellement.` : ''));
+                }, ingredientsPrincipaux.length * 500 + 500);
+            }
+        }
+
+        function noterRecette(recetteId, note) {
+            notations[recetteId] = note;
+            localStorage.setItem('notations', JSON.stringify(notations));
+            afficherRecettes();
         }
 
         function ouvrirModal(recetteId) {
             const recettes = getToutesRecettes();
             recetteActive = recettes.find(r => r.id === recetteId);
             const modal = document.getElementById('modal');
+            const note = notations[recetteId] || 0;
             
             document.getElementById('modal-titre').textContent = recetteActive.nom;
             document.getElementById('modal-info').innerHTML = `
                 ⏱️ ${recetteActive.temps || 'N/A'} • 👥 ${recetteActive.p} pers. • 📁 ${recetteActive.cat}
                 ${recetteActive.perso ? ' • <span style="color: #FFD700;">★ MA RECETTE</span>' : ''}
+                <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 0.9em;">Votre note :</span>
+                    ${[1,2,3,4,5].map(etoile => `
+                        <span class="star ${etoile <= note ? 'filled' : 'empty'}" 
+                              style="font-size: 1.5em; cursor: pointer;"
+                              onclick="noterRecette(${recetteId}, ${etoile}); ouvrirModal(${recetteId})">★</span>
+                    `).join('')}
+                </div>
             `;
             
             document.getElementById('modal-ingredients').innerHTML = recetteActive.ing.map(ing => `
