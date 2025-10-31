@@ -893,7 +893,6 @@
             <button class="nav-btn" onclick="changerVue('planning')">📅 Planning</button>
             <button class="nav-btn" onclick="changerVue('courses')">🛒 Courses<span id="courses-badge"></span></button>
             <button class="nav-btn" onclick="ouvrirModalNouvelleRecette()">➕ Nouvelle Recette</button>
-            <button class="nav-btn" onclick="genererRecetteIA()">🤖 Générer avec IA</button>
         </div>
 
         <!-- VUE RECETTES -->
@@ -907,11 +906,15 @@
                         <input type="text" 
                                class="search-input" 
                                id="search-input" 
-                               placeholder="🔍 Rechercher une recette (ex: poulet, pâtes, tarte...)">
+                               placeholder="🔍 Rechercher (ex: chicken, beef, pasta, salmon, cake, pizza...)">
                         <button class="search-btn" onclick="rechercherRecettesAPI()" id="search-btn">
                             Rechercher
                         </button>
                     </div>
+                    
+                    <p style="color: #666; font-size: 0.85em; margin-bottom: 15px;">
+                        💡 <strong>Astuce :</strong> Recherchez en anglais pour plus de résultats (ex: "chicken curry", "chocolate cake", "vegetarian pasta")
+                    </p>
                     
                     <div class="filters" id="filters"></div>
                     <div id="loading-recipes" class="loading" style="display:none;">
