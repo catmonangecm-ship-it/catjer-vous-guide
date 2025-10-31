@@ -402,7 +402,7 @@
             align-items: center;
         }
 
-        .search-btn {
+        .copy-ingredient-btn {
             background: linear-gradient(135deg, #00CED1, #20B2AA);
             color: white;
             border: none;
@@ -415,18 +415,12 @@
             box-shadow: 0 4px 10px rgba(0, 206, 209, 0.3);
         }
 
-        .search-btn:hover {
+        .copy-ingredient-btn:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 15px rgba(0, 206, 209, 0.5);
         }
 
-        .search-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .ingredient-item.searched {
+        .ingredient-item.copied {
             background: linear-gradient(135deg, #C8E6C9, #E8F5E9);
             border-color: #4CAF50;
         }
@@ -778,6 +772,16 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
         }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -832,32 +836,26 @@
                 <h2>🏪 Faire vos Courses en Ligne</h2>
                 
                 <div class="instruction-box">
-                    <strong>🔍 Recherche ingrédient par ingrédient :</strong><br>
-                    1️⃣ Choisissez votre supermarché ci-dessous<br>
-                    2️⃣ Cliquez sur "Rechercher" pour chaque ingrédient<br>
-                    3️⃣ Une nouvelle page s'ouvrira avec les résultats<br>
-                    4️⃣ Ajoutez au panier et fermez l'onglet pour passer au suivant !
+                    <strong>🔍 Mode d'emploi simple :</strong><br>
+                    1️⃣ Cliquez sur "📋 Copier" pour chaque ingrédient<br>
+                    2️⃣ L'ingrédient sera copié automatiquement<br>
+                    3️⃣ Allez sur votre supermarché (liens ci-dessous)<br>
+                    4️⃣ Collez dans la barre de recherche et ajoutez au panier !
                 </div>
 
                 <div class="supermarche-grid" style="margin-bottom: 30px;">
-                    <button class="supermarche-btn carrefour" onclick="choisirSupermarche('Carrefour', 'https://www.carrefour.fr/s?q=')">
+                    <button class="supermarche-btn carrefour" onclick="window.open('https://www.carrefour.fr', '_blank')">
                         🛒 Carrefour
                     </button>
-                    <button class="supermarche-btn auchan" onclick="choisirSupermarche('Auchan', 'https://www.auchan.fr/recherche?text=')">
+                    <button class="supermarche-btn auchan" onclick="window.open('https://www.auchan.fr', '_blank')">
                         🏪 Auchan
                     </button>
-                    <button class="supermarche-btn leclerc" onclick="choisirSupermarche('Leclerc Drive', 'https://fd8-courses.leclercdrive.fr/magasin-079502-Armentieres/recherche.aspx?Recherche=')">
+                    <button class="supermarche-btn leclerc" onclick="window.open('https://www.leclercdrive.fr', '_blank')">
                         🛍️ Leclerc Drive
                     </button>
-                    <button class="supermarche-btn intermarche" onclick="choisirSupermarche('Intermarché', 'https://www.intermarche.com/recherche?search=')">
+                    <button class="supermarche-btn intermarche" onclick="window.open('https://www.intermarche.com', '_blank')">
                         🏬 Intermarché
                     </button>
-                </div>
-
-                <div id="supermarche-choisi" style="display:none;">
-                    <div style="background: linear-gradient(135deg, #4CAF50, #66BB6A); color: white; padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 1.1em;">
-                        📍 Supermarché sélectionné : <span id="nom-supermarche"></span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1206,9 +1204,7 @@
         let categorieActive = 'Tous';
         let recetteActive = null;
         let prochainId = 100;
-        let supermarcheChoisi = null;
-        let urlSupermarche = null;
-        let ingredientsRecherches = new Set();
+        let ingredientsCopies = new Set();
 
         function getToutesRecettes() {
             return [...recettesPredefinies, ...recettesPerso];
@@ -1411,15 +1407,15 @@
                     </button>
                     <div class="liste-courses" id="liste-ingredients">
                         ${Object.entries(ingredients).map(([nom, quantites]) => {
-                            const estRecherche = ingredientsRecherches.has(nom);
+                            const estCopie = ingredientsCopies.has(nom);
                             return `
-                            <div class="ingredient-item ${estRecherche ? 'searched' : ''}" data-ingredient="${nom}">
+                            <div class="ingredient-item ${estCopie ? 'copied' : ''}" data-ingredient="${nom}">
                                 <span><strong>${nom}</strong> <span style="color: #666;">(${quantites.join(' + ')})</span></span>
                                 <div class="ingredient-actions">
-                                    ${estRecherche ? 
+                                    ${estCopie ? 
                                         '<span class="check-mark">✓</span>' :
-                                        `<button class="search-btn" onclick="rechercherIngredient('${nom.replace(/'/g, "\\'")}')">
-                                            🔍 Rechercher
+                                        `<button class="copy-ingredient-btn" onclick="copierIngredient('${nom.replace(/'/g, "\\'")}')">
+                                            📋 Copier
                                         </button>`
                                     }
                                 </div>
@@ -1466,72 +1462,43 @@
                 .join('\n');
             
             navigator.clipboard.writeText(texte).then(() => {
-                alert('✅ Liste copiée dans le presse-papier !\n\nVous pouvez la coller où vous voulez.');
+                alert('✅ Liste complète copiée dans le presse-papier !\n\nVous pouvez la coller où vous voulez.');
             }).catch(() => {
                 alert('❌ Erreur lors de la copie. Veuillez sélectionner et copier manuellement la liste.');
             });
         }
 
-        function choisirSupermarche(nom, url) {
-            supermarcheChoisi = nom;
-            urlSupermarche = url;
-            ingredientsRecherches.clear();
-            
-            // Afficher le supermarché choisi
-            document.getElementById('supermarche-choisi').style.display = 'block';
-            document.getElementById('nom-supermarche').textContent = nom;
-            
-            // Rafraîchir la liste pour afficher les boutons de recherche
-            mettreAJourCourses();
-            
-            // Scroll vers la liste
-            document.getElementById('courses-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
-            alert(`✅ ${nom} sélectionné !\n\nVous pouvez maintenant rechercher vos ingrédients un par un.\nCliquez sur "🔍 Rechercher" pour chaque ingrédient.`);
-        }
-
-        function rechercherIngredient(nomIngredient) {
-            if (!supermarcheChoisi) {
-                alert('⚠️ Veuillez d\'abord choisir un supermarché !');
-                return;
-            }
-
-            // Marquer l'ingrédient comme recherché
-            ingredientsRecherches.add(nomIngredient);
-            
-            // Copier l'ingrédient dans le presse-papier
+        function copierIngredient(nomIngredient) {
             navigator.clipboard.writeText(nomIngredient).then(() => {
-                // Message personnalisé selon le supermarché
-                let message = `📋 "${nomIngredient}" copié !\n\n`;
+                // Marquer comme copié
+                ingredientsCopies.add(nomIngredient);
+                mettreAJourCourses();
                 
-                if (supermarcheChoisi === 'Leclerc Drive' || supermarcheChoisi === 'Intermarché') {
-                    message += `Le site ${supermarcheChoisi} va s'ouvrir.\n\n`;
-                    message += `1️⃣ Cliquez dans la barre de recherche\n`;
-                    message += `2️⃣ Collez l'ingrédient (Ctrl+V)\n`;
-                    message += `3️⃣ Appuyez sur Entrée\n`;
-                    message += `4️⃣ Ajoutez au panier et fermez l'onglet`;
-                } else {
-                    message += `Une recherche va s'ouvrir pour cet ingrédient.`;
-                }
+                // Message de confirmation discret
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #4CAF50, #66BB6A);
+                    color: white;
+                    padding: 15px 25px;
+                    border-radius: 15px;
+                    font-weight: bold;
+                    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = `✓ "${nomIngredient}" copié !`;
+                document.body.appendChild(notification);
                 
-                alert(message);
-                
-                // Ouvrir le site (avec ou sans recherche selon le supermarché)
-                if (supermarcheChoisi === 'Carrefour' || supermarcheChoisi === 'Auchan') {
-                    // Pour Carrefour et Auchan, on peut faire une recherche directe
-                    const recherche = encodeURIComponent(nomIngredient);
-                    window.open(urlSupermarche + recherche, '_blank');
-                } else {
-                    // Pour Leclerc Drive et Intermarché, ouvrir juste le site
-                    window.open(urlSupermarche, '_blank');
-                }
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
             }).catch(() => {
-                alert('❌ Erreur lors de la copie. Notez l\'ingrédient et recherchez-le manuellement.');
-                window.open(urlSupermarche, '_blank');
+                alert(`❌ Erreur : impossible de copier "${nomIngredient}"`);
             });
-            
-            // Rafraîchir l'affichage
-            mettreAJourCourses();
         }
 
         function noterRecette(recetteId, note) {
