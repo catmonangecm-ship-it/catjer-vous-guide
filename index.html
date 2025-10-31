@@ -1499,9 +1499,36 @@
             // Marquer l'ingrédient comme recherché
             ingredientsRecherches.add(nomIngredient);
             
-            // Ouvrir la recherche dans un nouvel onglet
-            const recherche = encodeURIComponent(nomIngredient);
-            window.open(urlSupermarche + recherche, '_blank');
+            // Copier l'ingrédient dans le presse-papier
+            navigator.clipboard.writeText(nomIngredient).then(() => {
+                // Message personnalisé selon le supermarché
+                let message = `📋 "${nomIngredient}" copié !\n\n`;
+                
+                if (supermarcheChoisi === 'Leclerc Drive' || supermarcheChoisi === 'Intermarché') {
+                    message += `Le site ${supermarcheChoisi} va s'ouvrir.\n\n`;
+                    message += `1️⃣ Cliquez dans la barre de recherche\n`;
+                    message += `2️⃣ Collez l'ingrédient (Ctrl+V)\n`;
+                    message += `3️⃣ Appuyez sur Entrée\n`;
+                    message += `4️⃣ Ajoutez au panier et fermez l'onglet`;
+                } else {
+                    message += `Une recherche va s'ouvrir pour cet ingrédient.`;
+                }
+                
+                alert(message);
+                
+                // Ouvrir le site (avec ou sans recherche selon le supermarché)
+                if (supermarcheChoisi === 'Carrefour' || supermarcheChoisi === 'Auchan') {
+                    // Pour Carrefour et Auchan, on peut faire une recherche directe
+                    const recherche = encodeURIComponent(nomIngredient);
+                    window.open(urlSupermarche + recherche, '_blank');
+                } else {
+                    // Pour Leclerc Drive et Intermarché, ouvrir juste le site
+                    window.open(urlSupermarche, '_blank');
+                }
+            }).catch(() => {
+                alert('❌ Erreur lors de la copie. Notez l\'ingrédient et recherchez-le manuellement.');
+                window.open(urlSupermarche, '_blank');
+            });
             
             // Rafraîchir l'affichage
             mettreAJourCourses();
